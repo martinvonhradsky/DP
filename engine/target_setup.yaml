@@ -1,0 +1,101 @@
+- name: Target setup playbook
+  hosts: target
+  become: true
+  vars:
+    test: "All -ShowDetailsBrief"
+  tasks:
+    # install Extra Packages for Enterprise Linux
+    - name: Install EPEL package
+      ansible.builtin.yum:
+        name:
+          - epel-release
+          - sshpass
+        state: present
+      when: ansible_os_family == "Red Hat"
+
+    - name: Install EPEL package
+      apt:
+        name:
+          - sshpass
+        state: present
+      when: ansible_os_family == "Debian"  
+
+  # edit sshd_config for powershell remoting
+    - name: Download custom sshd_config for powershell remoting
+      ansible.builtin.get_url:
+        url: https://pastebin.com/raw/LFFTWvCz
+        dest: /etc/ssh/sshd_config
+
+  # install powershell
+    - name: Download powershell repo RedHat
+      ansible.builtin.get_url:
+        url: https://packages.microsoft.com/config/rhel/7/prod.repo
+        dest: /etc/yum.repos.d/
+      when: ansible_os_family == "Red Hat"
+
+    - name: Install Powershell RedHat
+      ansible.builtin.yum:
+        name: powershell
+        state: present 
+      when: ansible_os_family == "Red Hat"
+
+    - name: Download PGP security keys Debian
+      get_url:
+        url: https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb
+        dest: /tmp/packages-microsoft-prod.deb
+        force_basic_auth: yes
+      when: ansible_os_family == "Debian"
+
+    - name: Register PGP security keys Debian
+      command:
+        cmd: dpkg -i /tmp/packages-microsoft-prod.deb
+      when: ansible_os_family == "Debian"
+
+    - name: Update packege lists Debian
+      apt:
+        update_cache: yes
+      when: ansible_os_family == "Debian"
+
+    - name: Install latest version of PowerShell 7 Debian
+      apt:
+        name: powershell
+      when: ansible_os_family == "Debian"
+
+
+  # install invoke-atomic         
+    - name: Install InvokeAtomic
+      shell: IEX (IWR 'https://raw.githubusercontent.com/redcanaryco/invoke-atomicredteam/master/install-atomicredteam.ps1' -UseBasicParsing); Install-AtomicRedTeam -getAtomics -Force 
+      args:
+        executable: /usr/bin/pwsh
+      register: result
+
+    - name: Debug
+      debug:
+        var: result
+
+    - name: Install rsyslog on CentOS
+      become: true
+      yum:
+        name: rsyslog
+        state: present
+      when: ansible_os_family == "Red Hat"
+
+    - name: Install rsyslog on Debian
+      become: true
+      apt:
+        name: rsyslog
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Download file to rsyslog
+      become: true
+      get_url:
+        url: "https://pastebin.com/raw/jTtrkJf8"
+        dest: "/var/log/secmon.conf"
+
+    - name: Restart rsyslog
+      become: true
+      service:
+        name: rsyslog
+        state: restarted
+

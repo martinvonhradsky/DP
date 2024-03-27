@@ -1,0 +1,78 @@
+---
+- name: Server setup playbook
+  hosts: localhost
+  become: true
+  connection: local
+  tasks:
+    # create Ansible directory
+    - name: Create Ansible directory
+      file:
+        path: /etc/ansible
+        state: directory
+        mode: 0755
+    # Download Ansible config
+    - name: Download Ansible config file
+      get_url:
+        url: https://raw.githubusercontent.com/ansible/ansible/stable-2.9/examples/ansible.cfg
+        dest: /etc/ansible/ansible.cfg
+        mode: 0644
+    # Edit Ansible config disable hostkey checking
+    - name: Modify Ansible config file
+      replace:
+        path: /etc/ansible/ansible.cfg
+        regexp: "^#host_key_checking = False"
+        replace: "host_key_checking = False"
+    # initialize Ansible hosts file
+    - name: Create empty hosts file
+      file:
+        path: /etc/ansible/hosts
+        state: touch
+        mode: 0644
+    # install git
+    - name: Install git
+      apt:
+        name: git
+        state: present
+        update_cache: yes
+
+    - name: Download PGP security keys
+      get_url:
+        url: https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb
+        dest: /tmp/packages-microsoft-prod.deb
+        force_basic_auth: yes
+
+    - name: Register PGP security keys
+      command:
+        cmd: dpkg -i /tmp/packages-microsoft-prod.deb
+
+    - name: Update packege lists
+      apt:
+        update_cache: yes
+
+    - name: Install latest version of PowerShell 7
+      apt:
+        name: powershell
+
+    # edit sshd_config for powershell remoting
+    - name: Download custom sshd_config for powershell remoting
+      get_url:
+        url: https://pastebin.com/raw/LFFTWvCz
+        dest: /etc/ssh/sshd_config
+
+    # install invoke-atomic
+    - name: Install InvokeAtomic
+      shell: IEX (IWR 'https://raw.githubusercontent.com/redcanaryco/invoke-atomicredteam/master/install-atomicredteam.ps1' -UseBasicParsing); Install-AtomicRedTeam -Branch fixing_ci -getAtomics -Force
+      args:
+        executable: /usr/bin/pwsh
+
+    # test invoke-atomic instalation
+    - name: Test instalation
+      shell: Import-Module "/root/AtomicRedTeam/invoke-atomicredteam/Invoke-AtomicRedTeam.psd1" -Force; Invoke-AtomicTest All -ShowDetailsBrief
+      args:
+        executable: /usr/bin/pwsh
+      register: result
+
+    - name: Save output to file
+      copy:
+        content: "{{ result.stdout_lines }}"
+        dest: "/var/www/html/module/engine/available_tests.txt"

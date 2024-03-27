@@ -1,0 +1,41 @@
+---
+- name: Save custom test
+  become: true
+  hosts: localhost
+  connection: local
+  vars:
+    test_id: "empty"
+    git: false
+    test_number: "empty"
+    url: "empty"
+    file_name: "empty"
+
+  tasks:
+    # Get to customs directory
+    - name: Create directory if doesnt exist
+      file:
+          path: customs/{{ test_id }}/{{ test_number }}
+          state: directory
+
+    # Download custom code
+    - name: Example clone of a single branch
+      when: git
+      ansible.builtin.git:
+        repo: "{{ url }}"
+        dest: customs/{{ test_id }}/{{ test_number }}
+        version: master
+        force: yes
+
+    - name: Set permissions
+      when: git
+      file:
+        path: customs/{{ test_id }}/{{ test_number }}
+        recurse: yes
+        mode: "0744"
+
+    - name: Download custom code via get_url
+      when: not git
+      ansible.builtin.get_url:
+         url: "{{ url }}"
+         dest: "customs/{{ test_id }}/{{ test_number }}/{{ file_name }}"
+         mode: 0744

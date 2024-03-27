@@ -1,0 +1,43 @@
+/* src/style.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Import Lato font from Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap');
+
+@layer base {
+  /* Apply Lato font to the entire document */
+  html, body {
+    font-family: 'Lato', sans-serif;
+  }
+
+  a {
+    @apply text-blue-900;
+    text-decoration: none; /* Remove underline */
+  }
+
+  a:visited {
+    @apply text-blue-900;
+  }
+  /* Button style */
+  .btn {
+    @apply font-bold py-2 px-4 rounded-2xl self-auto w-48 shadow-md;
+  }
+  .btn-blue {
+    @apply bg-blue-500 text-white shadow-md;
+  }
+  .btn-blue:hover {
+    @apply bg-blue-700;
+  }
+
+/* Underline Form Input */
+.underline-form-input {
+  @apply w-full px-3 py-2 border-b-2 border-gray-300 focus:outline-none;
+  transition: border-color 0.3s ease;
+}
+
+.underline-form-input:focus {
+  @apply border-blue-500;
+}
+}

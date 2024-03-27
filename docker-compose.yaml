@@ -1,0 +1,57 @@
+version: '3'
+
+services:
+  web:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    volumes:
+      - .:/engine
+      - data-volume:/data
+    ports:
+      - "80:80"
+    depends_on:
+      - db
+
+  frontend:
+    build:
+      context: .
+      dockerfile: client/Dockerfile_vue
+    volumes: 
+      - .:/client
+    ports:
+      - "8085:8080"
+    depends_on:
+      - web
+      
+
+  db:
+    image: postgres:15.2
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    ports:
+      - "5434:5432"
+    
+
+  python:
+    build:
+      context: .
+      dockerfile: Dockerfile_python
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+      - data-volume:/data
+    depends_on:
+      - db
+      - web
+
+
+volumes:
+  db-data:
+  data-volume:

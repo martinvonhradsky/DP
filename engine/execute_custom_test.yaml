@@ -1,0 +1,28 @@
+---
+- name: Execute custom test on remote host
+  hosts: target
+  become: true
+  vars:
+    test_file: ""
+    test_number: ""
+    directory: "empty"
+    executable: ""
+  tasks:
+    - name: Create directory if it doesn't exist
+      ansible.builtin.file:
+        path: "/tmp/{{ test_number }}/"
+        state: directory
+
+    - name: Copy code to remote host
+      ansible.builtin.copy:
+        src: "{{ directory }}/"
+        dest: "/tmp/{{ test_number }}"
+        mode: 0744
+
+    - name: Execute code on remote host
+      ansible.builtin.command: "{{ executable }} /tmp/{{ test_number}}/{{ test_file }}"
+      register: result
+
+    - name: Debug
+      debug:
+        var: result

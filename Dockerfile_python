@@ -1,0 +1,11 @@
+FROM python:3.10
+
+COPY requirements.txt /app/requirements.txt
+RUN pip install --upgrade pip
+RUN pip install -r /app/requirements.txt
+
+COPY download_mitre01.py /app/
+
+WORKDIR /app
+
+CMD [ "python", "-u", "/app/download_mitre01.py"]
