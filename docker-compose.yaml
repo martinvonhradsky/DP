@@ -8,8 +8,9 @@ services:
     env_file:
       - .env
     volumes:
-      - .:/engine
+      - .:/var/www/html/module/
       - data-volume:/data
+      - data-known_hosts:/data-known_hosts
     ports:
       - "80:80"
     depends_on:
@@ -55,3 +56,4 @@ services:
 volumes:
   db-data:
   data-volume:
+  data-known_hosts:

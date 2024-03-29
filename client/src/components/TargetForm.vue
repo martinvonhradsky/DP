@@ -173,15 +173,16 @@ export default {
         this.notificationClass = "bg-red-500 text-white";
         return;
       }
-      this.isLoading = true;
       const apiUrl = `run-ansible.php?action=setupTarget&ip=${this.targetIp}&user=${this.sudoUser}&pass=${this.password}`;
       this.$axios
         .get(apiUrl)
         .then((response) => {
           console.log(response.data);
           this.setupOutput = response.data;
-          this.notificationMessage = "Setup run successfully.";
+          this.notificationMessage = "Setup started successfully.";
           this.notificationClass = "bg-green-500 text-white";
+          this.isLoading = true;
+          this.updateSetupOutput();
         })
         .catch((error) => {
           console.log(error);
@@ -189,10 +190,29 @@ export default {
           this.notificationClass = "bg-red-500 text-white";
         })
         .finally(() => {
-          this.isLoading = false;
+          
         });
         this.$emit("run-setup");
     },
+    updateSetupOutput() {
+      if (this.isLoading) {
+        const intervalId = setInterval(() => {
+          this.$axios
+            .get("api.php?action=result")
+            .then((response) => {              
+              this.setupOutput = response.data.output;
+              
+              if (response.data.end) {
+                clearInterval(intervalId); // Stop the interval when response.data.end is true
+              }
+            })
+            .catch((error) => {
+              console.log(error);
+            });
+        }, 2000);
+        this.isLoading = false;
+      }
+    }
   },
 };
 </script>

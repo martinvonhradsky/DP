@@ -17,11 +17,17 @@ function setTarget($ip, $user, $pass) {
 
 // Setup target
 function setupTarget($ip, $user, $pass) {
+  file_put_contents("./output.txt", "jooojha");
+  // php set env variable.
+  exec("sshpass -p \"$NAHODNE_MENO\" ssh-copy-id -o StrictHostKeyChecking=no centos@192.168.100.93 >> output.txt 2>&1");
+
+/*
   // set user to /etc/ansible/hosts
   setTarget($ip, $user, $pass);
   // Run the Ansible playbook for target setup 
   $command = "ansible-playbook ".ANSIBLE_PLAYBOOK_PATH."target_setup.yaml";
   executeAnsible($command, "");
+  */
 }
 
 function executeAnsibleTest($alias, $test) {
