@@ -17,9 +17,14 @@ function setTarget($ip, $user, $pass) {
 
 // Setup target
 function setupTarget($ip, $user, $pass) {
-  file_put_contents("./output.txt", "jooojha");
-  // php set env variable.
-  exec("sshpass -p \"$NAHODNE_MENO\" ssh-copy-id -o StrictHostKeyChecking=no centos@192.168.100.93 >> output.txt 2>&1");
+  // Concurrent requests will be handled by different PHP processes so the environment
+  // variables will not get overwritten.
+  putenv("PASS=$pass");
+  putenv("USER=$user");
+  putenv("IP=$ip");
+
+  // Single-quoted strings do not expand variables.
+  exec('sshpass -p "$PASS" ssh-copy-id -o StrictHostKeyChecking=no "$USER"@"$IP" >> output.txt 2>&1');
 
 /*
   // set user to /etc/ansible/hosts
@@ -113,7 +118,7 @@ if (isset($_GET["action"])) {
       setTarget($_GET["ip"], $_GET["user"], $_GET["pass"]);
       break;
     case "setupTarget":
-      if (isset($_GET['ip']) && isset($_GET['user']) && isset($_GET['pass'])){        
+      if (isset($_GET['ip']) && isset($_GET['user']) && isset($_GET['pass'])){
         setupTarget($_GET["ip"], $_GET["user"], $_GET["pass"]);
         break;        
       }
