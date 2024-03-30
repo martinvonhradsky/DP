@@ -1,0 +1,3 @@
+# Force LF line endings because all code is run in Linux-based
+# docker containers.
+* text=auto eol=lf
