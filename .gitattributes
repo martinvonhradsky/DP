@@ -1,3 +1,9 @@
 # Force LF line endings because all code is run in Linux-based
 # docker containers.
-* text=auto eol=lf
+# Note: `text=auto` did not detect all text files so below approach
+#       assumes everything is a text-file and we need to explicitly
+#       mark binary files
+* text eol=lf
+*.ico -text
+*.png -text
+*.xlsx -text
