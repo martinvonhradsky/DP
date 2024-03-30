@@ -52,6 +52,9 @@ services:
       - db
       - web
 
+  test-target:
+    build:
+      context: ./test-target/
 
 volumes:
   db-data:
