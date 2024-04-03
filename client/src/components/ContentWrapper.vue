@@ -4,11 +4,11 @@
   >
     <div class="flex">
       <CategoryColumn
-        v-for="(category, categoryName) in data"
+        v-for="categoryName in sortedCategories"
         :key="categoryName"
         class="flex-1 mr-2"
         :name="categoryName"
-        :items="category.items"
+        :items="data[categoryName].items"
       />
     </div>
   </div>
@@ -26,11 +26,27 @@ export default {
       required: true,
     },
   },
+  computed: {
+    sortedCategories() {
+      const columnOrder = [
+        "Reconnaissance",
+        "Resource Development",
+        "Initial Access",
+        "Execution",
+        "Persistence",
+        "Privilege Escalation",
+        "Defense Evasion",
+        "Credential Access",
+        "Discovery",
+        "Lateral Movement",
+        "Collection",
+        "Command and Control",
+        "Exfiltration",
+        "Impact",
+      ];
+      // Filter out the categories in the data object based on the column order
+      return columnOrder.filter(categoryName => this.data.hasOwnProperty(categoryName));
+    },
+  },
 };
 </script>
-
-<style>
-.CategoryColumn {
-  flex: 1;
-}
-</style>
