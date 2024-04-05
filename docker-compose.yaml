@@ -21,7 +21,7 @@ services:
       context: .
       dockerfile: client/Dockerfile_vue
     volumes: 
-      - .:/client
+      - ./client/src:/app/src
     ports:
       - "8085:8080"
     depends_on:
