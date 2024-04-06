@@ -21,8 +21,8 @@
 export default {
   props: {
     selectedTarget: {
-      type: Object,
-      default: () => ({}),
+      type: String,
+      default: () => (''),
     },
   },
   data() {
