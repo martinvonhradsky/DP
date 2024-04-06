@@ -7,32 +7,53 @@ define('ANSIBLE_HOSTS_PATH', '/etc/ansible/hosts');
 
 require 'api.php';
 
-// Set target host for Ansible
-function setTarget($ip, $user, $pass) {
+
+// Set target host for Ansible.
+// Return 0 on success, non-zero otherwise.
+function setAnsibleHosts($alias) {
+  // get Target data
+  $query = "SELECT IP, password, sudo_user, alias, platform FROM target WHERE alias = '$alias'";
+  $didSucceed = NULL;
+  $result=executeQuery($query, $didSucceed);
+  if ($result == NULL){
+    http_response_code(400);
+    echo "Error: No such host as: " . $alias;
+    return 1;
+  } else if (!$didSucceed) {
+    http_response_code(500);
+    echo "Internal error occurred: " . $result;
+    return 1;
+  }
+  $result = json_decode($result, true);
+  
   // Build the content of the hosts file for Ansible
-  $hostsContent = "[target]\n".$ip." ansible_connection=ssh ansible_ssh_user=".$user." ansible_ssh_pass=".$pass."\n";
+  $hostsContent = "[" . $alias . "]\n" . $result[0]['ip'] ." ansible_connection=ssh ansible_ssh_user=" . $result[0]['sudo_user'];
+  
+  // Using password, not public/private keys.
+  $pwd = $result[0]['password'];
+  if ($pwd != "") {
+    $hostsContent .= " ansible_ssh_pass=" . $pwd;
+  }
+  $hostsContent .= "\n";
+  
   // Write the content to the hosts file
-  file_put_contents(ANSIBLE_HOSTS_PATH, $hostsContent);
+  echo $hostsContent;
+  file_put_contents(ANSIBLE_HOSTS_PATH, $hostsContent, FILE_APPEND);
+  return 0;
 }
 
 // Setup target
-function setupTarget($ip, $user, $pass) {
+function setupTarget($alias) {
+  if (setAnsibleHosts($alias) != 0) {
+    return;
+  }
   // Concurrent requests will be handled by different PHP processes so the environment
   // variables will not get overwritten.
-  putenv("PASS=$pass");
-  putenv("USER=$user");
-  putenv("IP=$ip");
+  exec('echo popici > output.txt');
 
-  // Single-quoted strings do not expand variables.
-  exec('sshpass -p "$PASS" ssh-copy-id -o StrictHostKeyChecking=no "$USER"@"$IP" >> output.txt 2>&1');
-
-/*
-  // set user to /etc/ansible/hosts
-  setTarget($ip, $user, $pass);
-  // Run the Ansible playbook for target setup 
-  $command = "ansible-playbook ".ANSIBLE_PLAYBOOK_PATH."target_setup.yaml";
+  // Run the Ansible playbook for target setup. See: https://stackoverflow.com/a/29456196/4500196 
+  $command = "ansible-playbook --limit=$alias ".ANSIBLE_PLAYBOOK_PATH."target_setup.yaml";
   executeAnsible($command, "");
-  */
 }
 
 function executeAnsibleTest($alias, $test) {
@@ -113,14 +134,12 @@ function executeAnsible($command, $metadata) {
 // Handle incoming requests
 if (isset($_GET["action"])) {
   switch ($_GET["action"]) {
-    case "setTarget":
-      // Set the target host for Ansible with the provided IP address, username, and password
-      setTarget($_GET["ip"], $_GET["user"], $_GET["pass"]);
-      break;
     case "setupTarget":
-      if (isset($_GET['ip']) && isset($_GET['user']) && isset($_GET['pass'])){
-        setupTarget($_GET["ip"], $_GET["user"], $_GET["pass"]);
-        break;        
+      if (isset($_GET['alias'])){
+        setupTarget($_GET["alias"]);
+      } else {
+        http_response_code(400);
+        echo "The 'alias' was not set.";
       }
       break;
     case "executeTest":

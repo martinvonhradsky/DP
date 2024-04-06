@@ -1,9 +1,14 @@
 - name: Target setup playbook
-  hosts: target
+  hosts: all
   become: true
   vars:
     test: "All -ShowDetailsBrief"
   tasks:
+    - name: Check for single host
+      fail: msg="Single host check failed."
+      when: "{{ play_hosts|length }} != 1"
+
+    - debug: msg='I got executed!'
     # install Extra Packages for Enterprise Linux
     - name: Install EPEL package
       ansible.builtin.yum:

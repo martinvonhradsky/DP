@@ -55,7 +55,7 @@
                     'cursor-not-allowed': !callIsFormValid,
                     }"
                     type="submit"
-                    @click="callTargetRunSetup"
+                    @click="runSetup()"
                     >Run setup
                 </button>      
                 <target-form-delete :selected-target="selectedTarget.alias"></target-form-delete>
@@ -108,9 +108,6 @@
         callTargetAdd() {
             this.$refs.refEditForm.addTarget();
         },
-        callTargetRunSetup() {
-            this.$refs.refEditForm.runSetup();
-        },
         callIsFormValid(){
             this.$refs.refEditForm.isFormValid();
         },
@@ -140,11 +137,6 @@
         });
     },
     runSetup() {
-      if(!this.isFormValid){
-        this.notificationMessage = "To add target all fields have to be filled.";
-        this.notificationClass = "bg-red-500 text-white";
-        return;
-      }
       const apiUrl = `run-ansible.php?action=setupTarget&alias=${this.selectedTarget.alias}`;
       this.$axios
         .get(apiUrl)

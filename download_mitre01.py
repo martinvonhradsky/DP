@@ -44,7 +44,7 @@ def createTableTarget():
                 alias varchar(50) UNIQUE,
                 IP INET NOT NULL,
                 sudo_user VARCHAR(50) NOT NULL,
-                password BYTEA NOT NULL,
+                password VARCHAR(50) NOT NULL,
                 platform VARCHAR(20) NOT NULL
                 );
             """)

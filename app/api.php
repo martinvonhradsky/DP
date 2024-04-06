@@ -213,8 +213,13 @@ function editUser($ip, $username, $password, $platform, $alias) {
       $params['alias'] = $alias;
       
       $stmt = $db->prepare($query);
-      $stmt->execute($params);      
-      echo '{"status": "success","message": "User updated successfully"}';
+      $ret = $stmt->execute($params);
+      if ($ret) {
+        echo '{"status": "success","message": "User updated successfully"}';
+      } else {
+        http_response_code(400);
+        echo 'Query failed.';
+      }
   } catch (PDOException $e) {
       http_response_code(400);
       echo '{"status": "error","message":  " Update Target failed: ' . $e->getMessage() . '"}';
