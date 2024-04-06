@@ -145,7 +145,11 @@ function saveHistory($json, $detected) {
   }
 }
 
-function executeQuery($select) {
+// &$didSucceed is optional pass-by-reference variable.
+function executeQuery($select, &$didSucceed = NULL) {
+  $isDidSucceedUsed = (func_num_args() == 2);
+  $didSucceed = $isDidSucceedUsed ? true : NULL;
+
   try {
       // Create a new database object
       $db = new Database();
@@ -163,6 +167,7 @@ function executeQuery($select) {
       }
       return json_encode($result);
   } catch (PDOException $e) {
+      $didSucceed = $isDidSucceedUsed ? false : NULL;
       return "Connection failed: " . $e->getMessage();
   }
 }
@@ -179,7 +184,7 @@ function editUser($ip, $username, $password, $platform, $alias) {
 
     if ($stmt->fetchAll(PDO::FETCH_ASSOC) == null){
       echo "No such user available";
-      var_dump(http_response_code(204));
+      http_response_code(400);
       return;
     }
       $query = "UPDATE target SET ";
@@ -211,6 +216,7 @@ function editUser($ip, $username, $password, $platform, $alias) {
       $stmt->execute($params);      
       echo '{"status": "success","message": "User updated successfully"}';
   } catch (PDOException $e) {
+      http_response_code(400);
       echo '{"status": "error","message":  " Update Target failed: ' . $e->getMessage() . '"}';
   }
   
@@ -423,6 +429,9 @@ if (isset($_GET['action'])) {
         echo "ID: " . $id ." is not valid ID";
       }
       break;
+    case 'get_pub_ssh_key':
+      echo getenv('WEB_PUBLIC_KEY');
+      break;
     case 'result':
       echo getAnsibleOutput();
       break;
@@ -489,7 +498,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $alias = $json_data->alias;
         $platform = $json_data->platform;
         $query = "INSERT INTO target(IP, sudo_user, password, alias, platform) VALUES ('$ip', '$username', '$password', '$alias', '$platform')";
-        $result = executeQuery($query);
+        $didSucceed = NULL;
+        $result = executeQuery($query, $didSucceed);
+        if (!$didSucceed) {
+          http_response_code(400);
+        }
         echo $result;
         break;
       case 'test': 

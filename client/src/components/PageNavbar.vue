@@ -1,8 +1,8 @@
 <template>
   <nav>
     <router-link to="/" :class="{ active: isActive('Home') }" class="nav-link">Home</router-link>
-    <router-link to="/target" :class="{ active: isActive('ManageTarget') }" class="nav-link">Manage Target</router-link>
-    <router-link to="/test" :class="{ active: isActive('ManageCustomTest') }" class="nav-link">Manage Custom Test</router-link>
+    <router-link to="/target" :class="{ active: isActive('ManageTarget') }" class="nav-link">Manage Targets</router-link>
+    <router-link to="/test" :class="{ active: isActive('ManageCustomTest') }" class="nav-link">Manage Custom Tests</router-link>
   </nav>
 </template>
 

@@ -2,7 +2,6 @@
     <div>
       <navbar-vue/>
       
-
       <div class="flex">
         <!-- Target Form covering 2/3 of the screen -->
         <div class="w-2/3 m-3">
@@ -15,11 +14,9 @@
                 </h1>
             </div>
 
-            <div  v-if="selectedTarget !== null">
-                <target-form-edit ref="refEditForm" :selected-target="targetDetails"></target-form-edit>
-            </div>
-            <div v-else>
-                <target-form ref="refAddTargetForm"></target-form>            
+            <div>
+                <target-form-edit @newTargetAdded="fetchTargets()" ref="refEditForm" :is-new="selectedTarget == null" :selected-target="targetDetails"></target-form-edit>
+                <p>{{ this.setupOutput }}</p>  
             </div>
         </div>
         <!-- Table with Targets -->
@@ -32,8 +29,11 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="target in targets" :key="target.id" @click="handleTargetSelect(target)" :class="{ 'bg-blue-200': selectedTarget === target }">
-                            <td class="px-4 py-2">{{ target.alias }}</td>
+                        <tr v-for="target in targets" :key="target ? target.alias : null" @click="handleTargetSelect(target)" :class="{ 'bg-blue-200': selectedTarget === target }">
+                            <td class="px-4 py-2">
+                                <span v-if="target === null"><i>New Target</i></span>
+                                <span v-else>{{ target.alias }}</span>
+                            </td>
                         </tr>
                     </tbody>
                 </table>
@@ -48,33 +48,29 @@
                     type="submit"
                     @click="callTargetEdit">Edit Target</button>
 
+                <button 
+                    class="btn btn-blue"
+                    :class="{
+                    'bg-gray-500': !callIsFormValid,
+                    'cursor-not-allowed': !callIsFormValid,
+                    }"
+                    type="submit"
+                    @click="callTargetRunSetup"
+                    >Run setup
+                </button>      
                 <target-form-delete :selected-target="selectedTarget.alias"></target-form-delete>
             </div>
             <div v-else class="flex justify-center items-center flex-col space-y-4">
-                <div>
-                    <button 
-                        class="btn btn-blue"
-                        :class="{
-                        'bg-gray-500': !callIsFormValid,
-                        'cursor-not-allowed': !callIsFormValid,
-                        }"
-                        type="submit"
-                        @click="callTargetRunSetup"
-                        >Run setup
-                    </button>      
-                </div>   
-                <div>       
-                    <button 
-                        class="btn btn-blue"
-                        :class="{
-                        'bg-gray-500': !callIsFormValid,
-                        'cursor-not-allowed': !callIsFormValid,
-                        }"
-                        type="submit"
-                        @click="callTargetAdd"
-                        >Add target
-                    </button>
-                </div>
+              <button 
+                  class="btn btn-blue"
+                  :class="{
+                  'bg-gray-500': !callIsFormValid,
+                  'cursor-not-allowed': !callIsFormValid,
+                  }"
+                  type="submit"
+                  @click="callTargetAdd"
+                  >Add target
+              </button>
             </div>
         </div>
       </div>
@@ -84,17 +80,13 @@
   
   <script>
   import NavbarVue from "./PageNavbar.vue";
-  import TargetForm from "./TargetForm.vue";
   import TargetFormDelete from './TargetFormDelete.vue';
   import TargetFormEdit from "./TargetFormEdit.vue";
 
-
-  
   export default {
     name: "TargetPage",
     components: {
       NavbarVue,
-      TargetForm,
       TargetFormEdit,
       TargetFormDelete
     },
@@ -105,6 +97,8 @@
         toggleModal: true,
         targets: [],
         targetDetails: [],
+        isLoading: false,
+        setupOutput: "",
       };
     },
     methods: {
@@ -112,16 +106,13 @@
             this.$refs.refEditForm.editTarget();
         },
         callTargetAdd() {
-            this.$refs.refAddTargetForm.addTarget();
-            
-
+            this.$refs.refEditForm.addTarget();
         },
         callTargetRunSetup() {
-            this.$refs.refAddTargetForm.runSetup();
-
+            this.$refs.refEditForm.runSetup();
         },
         callIsFormValid(){
-            this.$refs.refAddTargetForm.isFormValid();
+            this.$refs.refEditForm.isFormValid();
         },
         fetchTargetDetails(alias) {
             if (!this.selectedTarget) {
@@ -141,25 +132,76 @@
         .get("api.php?action=targets")
         .then((response) => {
           this.targets = response.data;
+          // Represents "New Target".
+          this.targets.push(null);
         })
         .catch((error) => {
           console.log(error);
         });
     },
+    runSetup() {
+      if(!this.isFormValid){
+        this.notificationMessage = "To add target all fields have to be filled.";
+        this.notificationClass = "bg-red-500 text-white";
+        return;
+      }
+      const apiUrl = `run-ansible.php?action=setupTarget&alias=${this.selectedTarget.alias}`;
+      this.$axios
+        .get(apiUrl)
+        .then((response) => {
+          console.log(response.data);
+          this.setupOutput = response.data;
+          this.notificationMessage = "Setup started successfully.";
+          this.notificationClass = "bg-green-500 text-white";
+          this.isLoading = true;
+          this.updateSetupOutput();
+        })
+        .catch((error) => {
+          console.log(error);
+          this.notificationMessage = "Error: " + error;
+          this.notificationClass = "bg-red-500 text-white";
+        })
+        .finally(() => {
+          
+        });
+        this.$emit("run-setup");
+    },
+    updateSetupOutput() {
+      if (this.isLoading) {
+        const intervalId = setInterval(() => {
+          this.$axios
+            .get("api.php?action=result")
+            .then((response) => {              
+              this.setupOutput = response.data.output;
+              
+              if (response.data.end) {
+                clearInterval(intervalId); // Stop the interval when response.data.end is true
+              }
+            })
+            .catch((error) => {
+              console.log(error);
+            });
+        }, 2000);
+        this.isLoading = false;
+      }
+    },
     handleTargetSelect(target) {
         console.log(target);
         if (target == this.selectedTarget){
-            this.selectedTarget = null;
             return;
         }
         this.selectedTarget = target;
-        this.targetDetails = this.fetchTargetDetails(target.alias);
+        if (target == null) { // New Target
+          this.targetDetails = [];
+        } else {
+          this.targetDetails = this.fetchTargetDetails(target.alias);
+        }
         
     }
 
     },
     mounted() {
-        this.fetchTargets()
+      this.fetchTargets()
     },
   };
   </script>
