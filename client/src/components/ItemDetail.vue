@@ -46,77 +46,6 @@
             </option>
           </select>
         </div>
-        <h2
-          class="flex cursor-pointer items-center justify-center w-48 h-12 border-solid border border-black bg-gray-400 px-4 py-2 rounded-md shadow-md focus:shadow-md mb-10"
-          @click="toggleTargetModal"
-        >
-          Manage Target
-        </h2>
-        <div>
-          <TargetModal :show="showTargetModal" @toggleModal="toggleTargetModal">
-            <template #header>
-              <div>
-                <div class="flex flex-col">
-                  <h2 class="font-bold">Target Management</h2>
-                  <h2>
-                    {{
-                      selectedTarget
-                        ? `Target: ${selectedTarget}`
-                        : "Target not selected"
-                    }}
-                  </h2>
-                </div>
-                <div class="flex justify-center">
-                  <div class="w-full max-w-2xl">
-                    <div class="tabs">
-                      <button
-                        v-for="(tab, index) in filteredTabs"
-                        :key="index"
-                        @click="
-                          selectedTab = index;
-                          fetchTargetDetails(this.selectedTarget);
-                        "
-                        :class="{
-                          'bg-gray-800 text-white': selectedTab === index,
-                          'bg-gray-200 text-gray-800': selectedTab !== index,
-                        }"
-                        class="flex-1 px-4 py-2 text-sm font-medium focus:outline-none"
-                      >
-                        {{ tab }}
-                      </button>
-                    </div>
-                    <div
-                      v-for="(tab, index) in tabs"
-                      :key="index"
-                      v-show="selectedTab === index"
-                      class="pt-2"
-                    >
-                      <!-- Content for the tab -->
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </template>
-            <template #body>
-              <div v-show="selectedTab === 0" class="flex flex-col">
-                <span v-if="setupOutput !== ''" class="font-bold">Output:</span>
-                <p
-                  v-if="setupOutput !== ''"
-                  class="w-full h-fit border border-gray-300 rounded-md py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                >
-                  {{ setupOutput }}
-                </p>
-                <TargetForm :selected-target="selectedTarget" />
-              </div>
-              <div v-if="selectedTarget" v-show="selectedTab === 1">
-                <TargetFormEdit :selected-target="targetDetails" />
-              </div>
-              <div v-if="selectedTarget" v-show="selectedTab === 2">
-                <TargetFormDelete :selected-target="selectedTarget" />
-              </div>
-            </template>
-          </TargetModal>
-        </div>
         <button
           class="w-48 h-12 border-solid border border-black px-4 py-2 rounded-md shadow-md focus:shadow-md mb-10"
           @click="toggleCustomTestModal"
@@ -180,10 +109,6 @@
 <script>
 import CustomTestForm from "./CustomTestForm.vue";
 import TechDetail from "./TechDetail.vue";
-import TargetModal from "./TargetModal.vue";
-import TargetForm from "./TargetForm.vue";
-import TargetFormEdit from "./TargetFormEdit.vue";
-import TargetFormDelete from "./TargetFormDelete.vue";
 import NavbarVue from './PageNavbar.vue';
 
 import { RouterLink } from "vue-router";
@@ -194,10 +119,6 @@ export default {
     CustomTestForm,
     RouterLink,
     TechDetail,
-    TargetModal,
-    TargetForm,
-    TargetFormEdit,
-    TargetFormDelete,
     NavbarVue
   },
   data() {
@@ -210,10 +131,8 @@ export default {
       selectedTarget: null,
       selectedTest: null,
       setupOutput: "",
-      showTargetModal: false,
       showCustomTestModal: false,
       tabs: ["Add", "Edit", "Delete"], // Add more tab titles as needed
-      targetDetails: [],
       targets: [],
       testExecuted: false,
       testDetected: false,
@@ -344,9 +263,6 @@ export default {
         .catch((error) => {
           console.log(error);
         });
-    },
-    toggleTargetModal() {
-      this.showTargetModal = !this.showTargetModal;
     },
     toggleCustomTestModal() {
       this.showCustomTestModal = !this.showCustomTestModal;
