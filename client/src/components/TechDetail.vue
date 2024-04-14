@@ -46,24 +46,30 @@
           </p>
 
           <div v-for="test in tests" :key="test.id">
-            <input
-              type="radio"
-              :id="'radio' + test"
-              :name="'radio_group'"
-              :value="test"
-              v-model="selectedTest"
-              @change="selectTest(test)"
-            />
-            <label :for="'radio' + test">{{ test.id }} - {{ test.name }}</label
-            ><br />
+              <input
+                  type="radio"
+                  :id="'radio' + test"
+                  :name="'radio_group'"
+                  :value="test"
+                  v-model="selectedTest"
+                  @change="selectTest(test)"
+              />
+              <label :for="'radio' + test">{{ test.id }} - {{ test.name }}</label>
+              <div class="space-x-1" v-if="testSelected === test && test.arguments">
+                  <label for="textInput">Arguments</label>
+                  <input type="text" id="textInput" v-model="textInputValue" />
+              </div>
+              <br />
           </div>
 
           <span v-if="executeOutput !== null" class="font-bold">Output:</span>
           <p
             v-if="executeOutput !== null"
             class="bg-white text-gray-800 px-4 py-2 rounded-md shadow-md border-2 border-black my-4"
-          >
-            {{ executeOutput }}
+            style="font-family: 'Courier New', Courier, monospace;"
+            v-html="formattedOutput"
+            >
+            
           </p>
         </div>
       </div>
@@ -96,8 +102,14 @@ export default {
       localExecuteOutput: this.executeOutput,
       noTests: null,
       tests: null,
+      testSelected: null,
     };
   },
+  computed: {
+  formattedOutput() {
+    return this.executeOutput ? this.executeOutput.replace(/(\n|\\n)/g, '<br>') : '';
+  }
+},
   setup() {
     return {};
   },
@@ -117,6 +129,7 @@ export default {
         });
     },
     selectTest(test) {
+      this.testSelected = test;
       this.$emit("test-selected", test);
     },
   },
@@ -124,6 +137,9 @@ export default {
     executeOutput(newValue) {
       // Update localExecuteOutput when executeOutput prop changes
       this.localExecuteOutput = newValue;
+    },
+    selectedTest(newTest) {
+      this.textInputValue = newTest ? "" : null;
     },
   },
 };

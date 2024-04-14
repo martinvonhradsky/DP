@@ -117,7 +117,8 @@ def createTableTests():
                     file_name TEXT,
                     executable TEXT NOT NULL,
                     local_execution BOOLEAN,                    
-                    description TEXT
+                    description TEXT,
+                    arguments BOOLEAN
                 )
             """)
         cur.close()

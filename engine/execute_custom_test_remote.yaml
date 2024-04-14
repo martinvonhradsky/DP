@@ -1,0 +1,29 @@
+---
+- name: Execute custom test on remote host
+  hosts: localhost
+  become: true
+  vars:
+    alias: "localhost"
+    test_file: ""
+    test_number: ""
+    executable: ""
+    args: ""
+    local_execution: true
+    tech_id: ""
+  tasks:
+    - name: Check for single host
+      fail:
+        msg: "Single host check failed."
+      when: "{{ play_hosts|length }} != 1"
+      
+    - name: Execute code on local machine to remote target
+      ansible.builtin.command: "{{ executable }} /var/www/html/module/engine/customs/{{ tech_id }}/{{ test_number }}/{{ test_file }} {{ args }}"
+      register: result      
+      when: local_execution == false
+
+    - name: Debug
+      debug:
+        var: result
+      when: local_execution == false
+
+

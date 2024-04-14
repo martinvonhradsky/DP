@@ -38,7 +38,7 @@ function setAnsibleHosts($alias) {
   
   // Write the content to the hosts file
   echo $hostsContent;
-  file_put_contents(ANSIBLE_HOSTS_PATH, $hostsContent, FILE_APPEND);
+  file_put_contents(ANSIBLE_HOSTS_PATH, $hostsContent);
   return 0;
 }
 
@@ -57,29 +57,51 @@ function setupTarget($alias) {
 }
 
 function executeAnsibleTest($alias, $test) {
+  
   // get Target data
-  $query = "SELECT ip, alias, sudo_user, encode(password, 'escape')::text as password, platform FROM target WHERE alias='" . $alias . "' ;";
-  $result=json_decode(executeQuery($query), true);
+  $query = "SELECT ip, alias, sudo_user, password, platform FROM target WHERE alias='" . $alias . "' ;";
+  $result=json_decode(executeQuery($query), true); 
+  
   if ($result == NULL){
     echo "Error: No such host as: " . $alias;   
   }
   // set Target to /etc/ansible/hosts
-  setTarget($result[0]['ip'], $result[0]['sudo_user'], $result[0]['password']);
-  
+  //setTarget($result[0]['ip'], $result[0]['sudo_user'], $result[0]['password']);
+  setAnsibleHosts($alias);
   # create test metadata json
   $metadata = '{"test_id":"' . $test .'", "target":"'. $alias . '"}';
   $test_array = explode("-", $test);
-  $query = "SELECT executable, file_name  FROM tests WHERE technique_id='$test_array[0]' AND test_number='$test_array[1]';";
+  $query = "SELECT executable, file_name, arguments, local_execution FROM tests WHERE technique_id='$test_array[0]' AND test_number='$test_array[1]';";
   $result=json_decode(executeQuery($query), true);
   
   if($result[0]['executable'] !== "Invoke atomic"){
+    
+    if($result[0]['local_execution']){
+      echo "this";
+      // local execution that means its executed locally on remote machine
+      $command = "ansible-playbook --limit=$alias " . ANSIBLE_PLAYBOOK_PATH . "execute_custom_test.yaml --extra-vars '{\"executable\":\"{$result[0]['executable']}\", \"test_file\":\"{$result[0]['file_name']}\",\"directory\":\"./customs/{$test_array[0]}\", \"test_number\":\"{$test_array[1]}\", \"args\":\"8.8.8.8\", \"tech_id\":\"{$test_array[0]}\", \"alias\":\"{$alias}\"}'";
+        
+      
+    }else{
+      echo "that";
+      // remote execution that means its executed from ansible server to remote machine
+      $command = "ansible-playbook " . ANSIBLE_PLAYBOOK_PATH . "execute_custom_test_remote.yaml --extra-vars '{\"executable\":\"{$result[0]['executable']}\", \"test_file\":\"{$result[0]['file_name']}\", \"test_number\":\"{$test_array[1]}\", \"args\":\"8.8.8.8\", \"tech_id\":\"{$test_array[0]}\", \"local_execution\":false}'";
+      echo $command;            
+    }
+    
+    /*
     $path = "customs/".$test_array[0]."/".$test_array[1];
     // Run the Ansible playbook for custom test execution
-    $command = "ansible-playbook ".ANSIBLE_PLAYBOOK_PATH."execute_custom_test.yaml --extra-vars '{\"executable\":\"".$result[0]['executable']."\", \"test_file\":\"".$result[0]['file_name']."\",\"directory\":\"".$path."\",\"test_number\":\"".$test."\"}'";
-  }else{
+    //old
+    $command = "ansible-playbook --limit=$alias ".ANSIBLE_PLAYBOOK_PATH."execute_custom_test.yaml --extra-vars '{\"executable\":\"".$result[0]['executable']."\", \"test_file\":\"".$result[0]['file_name']."\",\"directory\":\"".$path."\",\"test_number\":\"".$test."\"}'";
+    // new
+    $command = "ansible-playbook --limit=$alias " . ANSIBLE_PLAYBOOK_PATH . "execute_custom_test.yaml --extra-vars '{\"executable\":\"{$result[0]['executable']}\", \"test_file\":\"{$result[0]['file_name']}\",\"directory\":\"./customs/{$test_array[0]}\", \"test_number\":\"{$test}\", \"args\":\"8.8.8.8\", \"tech_id\":\"{$test_array[0]}\", \"alias\":\"{$alias}\"}'";
+
+  */}else{
     // Run the Ansible playbook for InvokeAtomic for test execution with the specified test ID
-    $command = "ansible-playbook ".ANSIBLE_PLAYBOOK_PATH."execute_test.yaml --extra-vars '{\"test\":\"".$test."\"}'";
+    $command = "ansible-playbook --limit=$alias ".ANSIBLE_PLAYBOOK_PATH."execute_test.yaml --extra-vars '{\"test\":\"".$test."\"}'";
   }
+  
   executeAnsible($command, $metadata);
 }
 

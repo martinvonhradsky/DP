@@ -16,6 +16,13 @@ function isID($id) {
   return false;
 }
 
+function isURLValid($url) {
+  if (filter_var($url, FILTER_VALIDATE_URL)) {
+      return true;
+  } else {
+      return false;
+  }
+}
 
 # Get execution output
 function getTestOutput($str) {
@@ -113,6 +120,7 @@ function saveHistory($json, $detected) {
 
       $stmt = $db->prepare($sql);
       // Extract the parameters from the JSON data and bind the values to the placeholders
+      
       $data = json_decode($json, true);
       $test_id = $data['test_id'];
       $target = $data['target'];
@@ -248,7 +256,7 @@ function deleteUser($alias) {
 
 }
 
-function insertTest($num, $filename, $executable, $description, $local, $name, $technique_id) {
+function insertTest($num, $filename, $executable, $description, $local, $name, $technique_id,$args) {
   // Validate inputs
   echo "0";
   if (strcasecmp($local, "TRUE") === 0) {
@@ -269,8 +277,8 @@ function insertTest($num, $filename, $executable, $description, $local, $name, $
     $db->connect();
 
       echo "3";
-    $stmt = $db->prepare("INSERT INTO tests ( technique_id, test_number, name, executable, local_execution, description, file_name) VALUES
-     (:technique_id, :test_number, :name, :executable, :local_execution, :description, :file_name)");
+    $stmt = $db->prepare("INSERT INTO tests ( technique_id, test_number, name, executable, local_execution, description, file_name, arguments) VALUES
+     (:technique_id, :test_number, :name, :executable, :local_execution, :description, :file_name, :arguments)");
 
     $stmt->bindParam(':technique_id', $technique_id);
     $stmt->bindParam(':test_number', $num);
@@ -279,6 +287,7 @@ function insertTest($num, $filename, $executable, $description, $local, $name, $
     $stmt->bindParam(':local_execution', $local, PDO::PARAM_BOOL);
     $stmt->bindParam(':description', $description);
     $stmt->bindParam(':file_name', $filename);
+    $stmt->bindParam(':arguments', $args, PDO::PARAM_BOOL);
     echo "4";
     $result = $stmt->execute();
     echo "5";
@@ -307,7 +316,7 @@ function getAnsibleOutput() {
   $end = strpos($output, 'PLAY RECAP') !== false;
   if($end){
     // Remove Ansible hosts content
-    exec('echo "" > /etc/ansible/hosts');
+    //exec('echo "" > /etc/ansible/hosts');
   }
   // Construct the response object
   $response = ['end' => $end, 'output' => $output];
@@ -331,6 +340,7 @@ function saveTest($json_data){
   $local = $json_data->local;
   $name = $json_data->name;
   $id = $json_data->id;
+  $args = $json_data->args;
   if(!isID($id)){
     echo "Error: ID is no valid";
     exit;
@@ -342,7 +352,11 @@ function saveTest($json_data){
       exit;
     }
   }
-  
+  if(!isURLValid($url)){
+    echo "Error: Invalid URL.";
+    exit;
+  }
+
   $query = "SELECT MAX(test_number) FROM tests WHERE technique_id = '$id';";
   $result = executeQuery($query);  
   $data = json_decode($result, true);
@@ -354,15 +368,13 @@ function saveTest($json_data){
       $num = $max + 1;
   }
   
-  if($json_data->git){
-      $command = "../engine/custom_test.sh -i " . $id . " -u " . $url . " -n " . $num . " -g true";
-  }else{
-      $command = "../engine/custom_test.sh -i " . $id . " -u " . $url . " -n " . $num . " -f ". $filename;
-  }
+  $command = "../engine/custom_test.sh -i " . $id . " -u " . $url . " -n " . $num ;
+
+
   
   echo shell_exec($command);
 
-  $result = insertTest($num, $filename, $executable, $description, $local, $name, $id);
+  $result = insertTest($num, $filename, $executable, $description, $local, $name, $id, $args);
   
   if($result){
       echo "Test saving was successful.";
@@ -400,7 +412,7 @@ if (isset($_GET['action'])) {
       if (isset($_GET['id'])) {
         $id = $_GET['id'];
         if(isID($id)){
-          $query = "SELECT technique_id, test_number, name FROM tests WHERE technique_id = '$id' ORDER BY test_number;";
+          $query = "SELECT technique_id, test_number, name, arguments FROM tests WHERE technique_id = '$id' ORDER BY test_number;";
           $result = executeQuery($query);
           echo $result;
         } else {

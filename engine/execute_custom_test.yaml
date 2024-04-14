@@ -1,28 +1,56 @@
 ---
 - name: Execute custom test on remote host
-  hosts: target
+  hosts: all
   become: true
   vars:
+    alias: "localhost"
     test_file: ""
     test_number: ""
-    directory: "empty"
     executable: ""
+    args: ""
+    local_execution: true
+    tech_id: ""
   tasks:
+    - name: Check for single host
+      fail:
+        msg: "Single host check failed."
+      when: "{{ play_hosts|length }} != 1"
+      
     - name: Create directory if it doesn't exist
       ansible.builtin.file:
         path: "/tmp/{{ test_number }}/"
         state: directory
+      when: local_execution == true
 
     - name: Copy code to remote host
       ansible.builtin.copy:
-        src: "{{ directory }}/"
-        dest: "/tmp/{{ test_number }}"
-        mode: 0744
+        src: "./customs/{{ tech_id }}/{{ test_number}}"
+        dest: "/tmp/{{ tech_id }}"
+        mode: 0744      
+      when: local_execution == true
 
-    - name: Execute code on remote host
-      ansible.builtin.command: "{{ executable }} /tmp/{{ test_number}}/{{ test_file }}"
-      register: result
+    - name: Execute code localy on remote host
+      ansible.builtin.command: "{{ executable }} /tmp/{{ tech_id }}/{{ test_number }}/{{ test_file }} {{ args }}"
+      register: result      
+      when: local_execution == true
 
     - name: Debug
       debug:
         var: result
+      when: local_execution == true
+
+    - name: Execute code on locally
+      ansible.builtin.command: "{{ executable }} /var/www/html/module/engine/customs/{{ tech_id }}/{{ test_number }}/{{ test_file }} {{ args }}"
+      register: result      
+      when: local_execution == false
+
+    - name: Debug
+      debug:
+        var: result
+      when: local_execution == false
+
+
+
+#### Should be run like:
+#Execution on remote target  : ansible-playbook --limit=centos "./execute_custom_test.yaml" --extra-vars '{"executable":"/bin/bash", "test_file":"script.sh", "directory":"./customs/T1548", "test_number":"1", "args":"mooore", "tech_id":"T1548", "alias":"centos"}'
+#Execution on control machine: ansible-playbook "./execute_custom_test.yaml"                --extra-vars '{"executable":"/bin/bash", "test_file":"script.sh", "test_number":"1", "args":"mooore", "tech_id":"T1548", "local_execution":false}'

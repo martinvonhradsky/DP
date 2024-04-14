@@ -12,5 +12,7 @@ do
   esac
 done
 
-output=$(ansible-playbook /var/www/html/module/engine/save_custom_test.yaml --extra-vars "{\"test_id\":\"${id}\", \"test_number\":\"${test_num}\",\"url\":\"${url}\",\"file_name\":\"${file_name}\",\"git\":\"${git}\"}")
+mkdir -p customs/${id}/${test_number}
+
+output=$(ansible-playbook /var/www/html/module/engine/save_custom_test.yaml --extra-vars "{\"test_id\":\"${id}\", \"test_number\":\"${test_num}\",\"url\":\"${url}\",\"file_name\":\"${file_name}\"}")
 echo "${output}"

@@ -25,12 +25,6 @@
         state: present
       when: ansible_os_family == "Debian"  
 
-  # edit sshd_config for powershell remoting
-    - name: Download custom sshd_config for powershell remoting
-      ansible.builtin.get_url:
-        url: https://pastebin.com/raw/LFFTWvCz
-        dest: /etc/ssh/sshd_config
-
   # install powershell
     - name: Download powershell repo RedHat
       ansible.builtin.get_url:

@@ -2,14 +2,16 @@
   <div>
     <div v-for="(field, fieldName) in fields" :key="fieldName" class="mb-5">
       <label class="block text-gray-700 font-bold mb-2" :for="fieldName">
-        {{ fieldName.charAt(0).toUpperCase() + fieldName.slice(1) }}
+        {{ labels[fieldName] }} <!-- Use labels[fieldName] for label text -->
       </label>
       <input
-        v-if="fieldName !== 'git' && fieldName !== 'local'"
+        v-if="fieldName !== 'local' && fieldName !== 'args'"
         class="w-full h-fit border border-gray-300 rounded-md py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
         :id="fieldName"
         type="text"
         v-model="field.value"
+        :title="field.tooltip"
+        :placeholder="field.placeholder"
       />
       <input
         v-else
@@ -42,16 +44,25 @@ export default {
   },
   data() {
     return {
+      labels: {
+        url: "URL of Git repository", 
+        id: "ID of Technic",
+        name: "Test Name to be displayed in application",
+        desc: "Description",
+        filename: "Name of entrypoint - file to be executed",
+        executable: "Executable Path",
+        local: "Execute Test locally on Remote Target Device",
+        args: "Additional Arguments"
+      },
       fields: {
-        url: { value: "" },
-        id: { value: "" },
-        executable: { value: "" },
-        desc: { value: "" },
-        local: { value: false },
-        name: { value: "" },
-        filename: { value: "" },
-        extension: { value: "" },
-        git: { value: false },
+        url: { value: "", tooltip: "Enter the URL of the target", placeholder: "Enter URL" },
+        id: { value: "", tooltip: "Enter the ID of the target", placeholder: "Enter ID" },
+        name: { value: "", tooltip: "Enter the name of the test", placeholder: "Enter test name" },
+        desc: { value: "", tooltip: "Enter a description for the test", placeholder: "Enter description" },
+        filename: { value: "", tooltip: "Enter the filename of the test", placeholder: "Enter filename" },
+        executable: { value: "", tooltip: "Enter the path to the executable", placeholder: "Enter executable path" },
+        local: { value: false, tooltip: "Check if the test is to be executed locally" },
+        args: { value: "", tooltip: "Enter any additional arguments for the test", placeholder: "Enter additional arguments" }
       },
       isLoading: false,
     };

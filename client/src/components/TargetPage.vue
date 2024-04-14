@@ -164,7 +164,7 @@
           this.$axios
             .get("api.php?action=result")
             .then((response) => {              
-              this.setupOutput = response.data.output;
+              this.setupOutput = String(response.data.output);
               
               if (response.data.end) {
                 clearInterval(intervalId); // Stop the interval when response.data.end is true
