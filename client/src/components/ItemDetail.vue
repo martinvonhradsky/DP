@@ -243,7 +243,6 @@ export default {
       this.testExecuted = false;
     },
     saveTestResult() {
-      console.log("saveTestTriggered");
       const selectedItem = this.items.find(
                 (item) => item.id === this.selectedTest.technique_id
               );

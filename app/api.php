@@ -54,6 +54,7 @@ function getResult($str, $metadata) {
   if ($new_str !== ""){
       $json_execution = json_decode($new_str);
       $metadata = json_decode($metadata);
+      
       $output = array (
           "test_id" => $hack[3],
           "target" => $hack[7],
@@ -451,6 +452,12 @@ if (isset($_GET['action'])) {
       break;
     case 'result':
       echo getAnsibleOutput();
+      break;
+    case 'get_custom_tests':
+      echo executeQuery("SELECT * FROM tests;");
+      break;
+    case 'get_custom_ids':
+      echo executeQuery("SELECT DISTINCT ON (technique_id) * FROM tests;");
       break;
 
   }

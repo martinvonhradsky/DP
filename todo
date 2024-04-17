@@ -3,31 +3,22 @@ Vikend  session:
 - pustat SSH na inom porte ako 22
 - pridat moznost specifikovat port
 
-Add custom test:
-!!! vzdy to bude git!!!
-url                     -> www.xyz.ab
-id                      -> TXXXX.XX
-executable              -> program ktorym ma byt spustene ->/bin/bash
-desc                    -> popis, mozno nejaky help
-local/remote execution  -> ci sa ma vykonavat na zariadeni alebo zo serveru na zariadenie
-name                    -> meno testu do GUI
-filename                -> meno suboru ktory ma byt spusteny (napr entrypoint.sh)
-args                    -> argumenty s ktorymi ma byt test spustany
-                          - tak ako by boli pridane za skriptom
-                          - "-help / -destination "192.168.100.93" / --version"
-
 ansible-playbook "./execute_custom_test.yaml" --extra-vars {"executable":"/bin/bash", "test_file":"script.sh","directory":"./customs/T1548","test_number":"1", "args":"mooore"}
 
-TODO:
-  DONE scripty na spustanie testov - local/remote
-  DONE uprava frontend
-  DONE uprava DB    todo rebuild
-  - uprava volani testu
-  - uprava ulozenia testu
 
 
 docasne vypnute mazanie ansible/hosts
 api.php line 310 funkcia getAnsibleOutput
 
-
 SELECT ip, alias, sudo_user, password, platform FROM target WHERE alias='centos'
+
+TODO Martin:
+CustomTestForm:
+  upravit frontend nech z toho negrcame
+  naplnit inputy udajmi testu on select
+  - dorobit delete  JA
+  - dorobit edit    JA
+
+
+Spustenie testu s argumentami:
+  dostat hodnotu z inut textu TechDetail line 60 do executeTest line 158 v ItemDetail

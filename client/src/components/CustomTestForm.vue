@@ -1,38 +1,74 @@
 <template>
-  <div>
-    <div v-for="(field, fieldName) in fields" :key="fieldName" class="mb-5">
-      <label class="block text-gray-700 font-bold mb-2" :for="fieldName">
-        {{ labels[fieldName] }} <!-- Use labels[fieldName] for label text -->
-      </label>
-      <input
-        v-if="fieldName !== 'local' && fieldName !== 'args'"
-        class="w-full h-fit border border-gray-300 rounded-md py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-        :id="fieldName"
-        type="text"
-        v-model="field.value"
-        :title="field.tooltip"
-        :placeholder="field.placeholder"
-      />
-      <input
-        v-else
-        class="mr-2 leading-tight"
-        :id="fieldName"
-        type="checkbox"
-        v-model="field.value"
-      />
+  <div class="flex">
+    <!-- Left side - Input fields for selected test -->
+    <div class="flex-1">
+      <div v-for="(field, fieldName) in fields" :key="fieldName" class="mb-5">
+        <label class="block text-gray-700 font-bold mb-2" :for="fieldName">
+          {{ labels[fieldName] }}
+        </label>
+        <input
+          v-if="fieldName !== 'local' && fieldName !== 'args'"
+          class="w-full h-fit border border-gray-300 rounded-md py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+          :id="fieldName"
+          type="text"
+          v-model="field.value"
+          :title="field.tooltip"
+          :placeholder="field.placeholder"
+        />
+        <input
+          v-else
+          class="mr-2 leading-tight"
+          :id="fieldName"
+          type="checkbox"
+          v-model="field.value"
+        />
+      </div>
+      <div class="flex justify-between">
+        <button class="btn btn-red" @click="deleteCustomTest">Delete</button>
+        <button class="btn btn-green" @click="editCustomTest">Edit</button>
+      </div>
     </div>
-    <div class="flex justify-between">
-      <button
-        class="btn btn-blue"
-        type="submit"
-        @click="submitCustomTest"
-      >
-        Add Custom Test
-      </button>
-    </div>
+    <!-- Right side - Custom tests table -->
+    <div style="display: flex; flex-direction: row;">
+  <!-- First table for the left column -->
+  <div style="flex: 1; overflow: auto;">
+    <table class="border-collapse border border-gray-400 w-full" style="table-layout: fixed;">
+      <thead>
+        <tr>
+          <th class="border border-gray-400 px-4 py-2">Technic ID</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="(tech) in leftColumn" :key="tech" @click="handleTechSelect(tech)" :class="{ 'bg-blue-200': selectedTech === tech }">
+          <td class="border border-gray-400 px-4 py-2">{{ tech.technique_id }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Second table for the right column -->
+  <div style="flex: 1; overflow: auto;">
+    <table class="border-collapse border border-gray-400 w-full" style="table-layout: fixed;">
+      <thead>
+        <tr>
+          <th class="border border-gray-400 px-4 py-2">Test</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="(test) in customTests" :key="test" @click="handleTestSelect(test)" :class="{'bg-blue-200': selectedTest === test}">
+          <td v-if="selectedTech && selectedTech.technique_id === test.technique_id"   class="border border-gray-400 px-4 py-2">
+      
+              {{ test.name }}
+
+        </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
   </div>
 </template>
-
 <script>
 export default {
   name: "TargetForm",
@@ -64,6 +100,10 @@ export default {
         local: { value: false, tooltip: "Check if the test is to be executed locally" },
         args: { value: "", tooltip: "Enter any additional arguments for the test", placeholder: "Enter additional arguments" }
       },
+      customTests: null,
+      selectedTest: null,
+      selectedTech: null,
+      leftColumn: null,
       isLoading: false,
     };
   },
@@ -75,6 +115,10 @@ export default {
       );
       return nonCheckboxFields.every((field) => field.value);
     },
+  },
+  mounted() {
+    this.fetchTests();
+    this.fetchIDs();
   },
   methods: {
     async submitCustomTest() {
@@ -106,6 +150,40 @@ export default {
         alert("Error: " + error);
       }
     },
+    fetchTests() {
+      this.$axios
+        .get("api.php?action=get_custom_tests")
+        .then((response) => {
+          this.customTests = response.data;         
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    },
+    fetchIDs() {
+      this.$axios
+        .get("api.php?action=get_custom_ids")
+        .then((response) => {
+          this.leftColumn = response.data;         
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    },
+    handleTechSelect(test){
+      if(this.selectedTech === test){
+        this.selectedTech = null;
+      }else{
+        this.selectedTech = test;
+      }
+    },
+    handleTestSelect(test){
+      if(this.selectedTest === test){
+        this.selectedTest = null;
+      }else{
+        this.selectedTest = test;
+      }
+    }
   },
 };
 </script>

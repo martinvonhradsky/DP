@@ -109,6 +109,7 @@
       v-if="notificationMessage"
       :class="notificationClass"
       class="rounded-md p-4 mb-4 mt-4"
+      style="font-family: 'Courier New', Courier, monospace;"
     >
       {{ notificationMessage }}
     </div>

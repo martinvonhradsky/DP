@@ -16,7 +16,7 @@
 
             <div>
                 <target-form-edit @newTargetAdded="fetchTargets()" ref="refEditForm" :is-new="selectedTarget == null" :selected-target="targetDetails"></target-form-edit>
-                <p>{{ this.setupOutput }}</p>  
+                <p style="font-family: 'Courier New', Courier, monospace;" v-html="formatOutput"></p>  
             </div>
         </div>
         <!-- Table with Targets -->
@@ -29,7 +29,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="target in targets" :key="target ? target.alias : null" @click="handleTargetSelect(target)" :class="{ 'bg-blue-200': selectedTarget === target }">
+                      <tr v-for="target in targets" :key="target ? target.alias : null" @click="handleTargetSelect(target)" :class="{ 'bg-blue-200': selectedTarget === target }">
                             <td class="px-4 py-2">
                                 <span v-if="target === null"><i>New Target</i></span>
                                 <span v-else>{{ target.alias }}</span>
@@ -100,6 +100,12 @@
         isLoading: false,
         setupOutput: "",
       };
+    },
+    computed:{
+      formatOutput(){
+        return this.setupOutput ? this.setupOutput.replace(/(\n|\\n)/g, '<br>') : '';
+      }
+      
     },
     methods: {
         callTargetEdit() {
