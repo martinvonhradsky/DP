@@ -209,13 +209,15 @@ def parseDataToDB():
         try:
             cur = conn.cursor()
             cur.execute(
-                "INSERT INTO tests (technique_id, test_number, name, executable) VALUES (%s, %s, %s, %s)",
-                (technique_id, test_number, name, "Invoke atomic")
+                "INSERT INTO tests (technique_id, test_number, name, executable, arguments, local_execution) VALUES (%s, %s, %s, %s, %s, %s)",
+                (technique_id, test_number, name, "Invoke atomic", 'false', 'true')
             )
             conn.commit()
         except Exception as e:
             print(f"Failed to insert data into the database: {str(e)}")
-    cur.close()
+        finally:
+            cur.close()
+
     print("Parsing finished")
 
 

@@ -413,7 +413,7 @@ if (isset($_GET['action'])) {
       if (isset($_GET['id'])) {
         $id = $_GET['id'];
         if(isID($id)){
-          $query = "SELECT technique_id, test_number, name, arguments FROM tests WHERE technique_id = '$id' ORDER BY test_number;";
+          $query = "SELECT technique_id, test_number, name, arguments, local_execution FROM tests WHERE technique_id = '$id' ORDER BY test_number;";
           $result = executeQuery($query);
           echo $result;
         } else {

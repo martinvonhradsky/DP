@@ -11,9 +11,9 @@
           class="w-full h-fit border border-gray-300 rounded-md py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
           :id="fieldName"
           type="text"
-          v-model="field.value"
-          :title="field.tooltip"
           :placeholder="field.placeholder"
+          :value="selectedTest ? selectedTest[fieldName] : field.value"
+          @input="updateFieldValue(fieldName, $event.target.value)"
         />
         <input
           v-else
@@ -24,51 +24,56 @@
         />
       </div>
       <div class="flex justify-between">
-        <button class="btn btn-red" @click="deleteCustomTest">Delete</button>
-        <button class="btn btn-green" @click="editCustomTest">Edit</button>
+        <button
+          class="btn btn-blue"
+          type="submit"
+          @click="submitCustomTest"
+        >
+          Add Custom Test
+        </button>
+        <button class="btn btn-blue" @click="editCustomTest">Edit</button>
+        <button class="btn btn-blue" @click="deleteCustomTest">Delete</button>
       </div>
     </div>
     <!-- Right side - Custom tests table -->
     <div style="display: flex; flex-direction: row;">
-  <!-- First table for the left column -->
-  <div style="flex: 1; overflow: auto;">
-    <table class="border-collapse border border-gray-400 w-full" style="table-layout: fixed;">
-      <thead>
-        <tr>
-          <th class="border border-gray-400 px-4 py-2">Technic ID</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="(tech) in leftColumn" :key="tech" @click="handleTechSelect(tech)" :class="{ 'bg-blue-200': selectedTech === tech }">
-          <td class="border border-gray-400 px-4 py-2">{{ tech.technique_id }}</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+      <!-- First table for the left column -->
+      <div style="flex: 1; overflow: auto;">
+        <table class="border-collapse border border-gray-400 w-full" style="table-layout: fixed;">
+          <thead>
+            <tr>
+              <th class="border border-gray-400 px-4 py-2">Technic ID</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(tech) in leftColumn" :key="tech" @click="handleTechSelect(tech)" :class="{ 'bg-blue-200': selectedTech === tech }">
+              <td class="border border-gray-400 px-4 py-2">{{ tech.technique_id }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
-  <!-- Second table for the right column -->
-  <div style="flex: 1; overflow: auto;">
-    <table class="border-collapse border border-gray-400 w-full" style="table-layout: fixed;">
-      <thead>
-        <tr>
-          <th class="border border-gray-400 px-4 py-2">Test</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="(test) in customTests" :key="test" @click="handleTestSelect(test)" :class="{'bg-blue-200': selectedTest === test}">
-          <td v-if="selectedTech && selectedTech.technique_id === test.technique_id"   class="border border-gray-400 px-4 py-2">
-      
-              {{ test.name }}
-
-        </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-</div>
-
+      <!-- Second table for the right column -->
+      <div style="flex: 1; overflow: auto;">
+        <table class="border-collapse border border-gray-400 w-full" style="table-layout: fixed;">
+          <thead>
+            <tr>
+              <th class="border border-gray-400 px-4 py-2">Test</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(test) in customTests" :key="test" @click="handleTestSelect(test)" :class="{'bg-blue-200': selectedTest === test}">
+              <td v-if="selectedTech && selectedTech.technique_id === test.technique_id" class="border border-gray-400 px-4 py-2">
+                {{ test.name }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 </template>
+
 <script>
 export default {
   name: "TargetForm",
@@ -115,6 +120,10 @@ export default {
       );
       return nonCheckboxFields.every((field) => field.value);
     },
+    getFieldValue(fieldName) {
+      return fieldName.value;
+      //return this.selectedTest ? this.selectedTest[fieldName] : '';
+    }
   },
   mounted() {
     this.fetchTests();
@@ -175,6 +184,7 @@ export default {
         this.selectedTech = null;
       }else{
         this.selectedTech = test;
+        this.selectedTest = null;
       }
     },
     handleTestSelect(test){
@@ -183,10 +193,12 @@ export default {
       }else{
         this.selectedTest = test;
       }
-    }
+    },
+    
   },
 };
 </script>
+
 <style scoped>
 .spinner {
   border-top: 2px solid #666;

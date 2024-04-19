@@ -75,8 +75,8 @@
               ? 'Select a target and a test first.'
               : missingTooltip
           "
-          :disabled="!selectedTarget || !selectedTest"
-          :class="{ 'cursor-not-allowed': !selectedTarget || !selectedTest }"
+          :disabled="selectedTest ? (selectedTest.local_execution ? (!selectedTarget || !selectedTest) : false) : true "
+          :class="{ 'cursor-not-allowed': selectedTest ? (selectedTest.local_execution ? (!selectedTarget || !selectedTest) : false) : true }"
         >
           <span v-if="!isLoading">Execute Test</span>
           <div v-else>
