@@ -57,7 +57,7 @@
               <label :for="'radio' + test">{{ test.id }} - {{ test.name }}</label>
               <div class="space-x-1" v-if="testSelected === test && test.arguments">
                   <label for="textInput">Arguments</label>
-                  <input type="text" id="textInput" v-model="textInputValue" />
+                  <input type="text" id="textInput" v-model="argumentsValue" @input="updateArgumentsValue(test)"/>
               </div>
               <br />
           </div>
@@ -103,6 +103,8 @@ export default {
       noTests: null,
       tests: null,
       testSelected: null,
+      argumentsValue: null,
+      troubleshoot: null,
     };
   },
   computed: {
@@ -129,9 +131,19 @@ export default {
         });
     },
     selectTest(test) {
-      this.testSelected = test;
-      this.$emit("test-selected", test);
-    },
+      if(!test.arguments){
+        this.testSelected = test;
+        this.$emit("test-selected", { test: test, args: null });
+      }
+    this.testSelected = test;
+  },
+  updateArgumentsValue(test) {
+    this.troubleshoot = this.argumentsValue; // Optional: Update troubleshoot if needed
+    console.log("troubleshoot: " + this.troubleshoot);
+    this.selectedTest = test;
+    this.$emit("test-selected", { test: test, args: this.argumentsValue });
+  },
+
   },
   watch: {
     executeOutput(newValue) {

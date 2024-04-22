@@ -56,36 +56,53 @@ function setupTarget($alias) {
   executeAnsible($command, "");
 }
 
-function executeAnsibleTest($alias, $test) {
-  
-  // get Target data
-  $query = "SELECT ip, alias, sudo_user, password, platform FROM target WHERE alias='" . $alias . "' ;";
-  $result=json_decode(executeQuery($query), true); 
-  
-  if ($result == NULL){
-    echo "Error: No such host as: " . $alias;   
+function executeAnsibleTest($alias, $test, $args) {
+  if($args == "null"){
+    $args = "";
   }
-  // set Target to /etc/ansible/hosts
-  //setTarget($result[0]['ip'], $result[0]['sudo_user'], $result[0]['password']);
-  setAnsibleHosts($alias);
+
+
+  if($alias !== "null"){
+    // get Target data
+    $query = "SELECT ip, alias, sudo_user, password, platform FROM target WHERE alias='" . $alias . "' ;";
+    $result=json_decode(executeQuery($query), true); 
+    
+    if ($result == NULL){
+      echo "Error: No such host as: " . $alias;   
+    }
+    // set Target to /etc/ansible/hosts
+    //setTarget($result[0]['ip'], $result[0]['sudo_user'], $result[0]['password']);
+    setAnsibleHosts($alias);  
+  }
+
   # create test metadata json
   $metadata = '{"test_id":"' . $test .'", "target":"'. $alias . '"}';
   $test_array = explode("-", $test);
   $query = "SELECT executable, file_name, arguments, local_execution FROM tests WHERE technique_id='$test_array[0]' AND test_number='$test_array[1]';";
   $result=json_decode(executeQuery($query), true);
-  
+
+
   if($result[0]['executable'] !== "Invoke atomic"){
     
     if($result[0]['local_execution']){
-      echo "this";
+      echo "local exe";
+
+      if($alias == "null") {
+        // Set the HTTP response code to 400
+        http_response_code(400);
+        // Return the error message
+        echo "Test execution failed. No target device specified for local execution.";
+
+      }
+
       // local execution that means its executed locally on remote machine
-      $command = "ansible-playbook --limit=$alias " . ANSIBLE_PLAYBOOK_PATH . "execute_custom_test.yaml --extra-vars '{\"executable\":\"{$result[0]['executable']}\", \"test_file\":\"{$result[0]['file_name']}\",\"directory\":\"./customs/{$test_array[0]}\", \"test_number\":\"{$test_array[1]}\", \"args\":\"8.8.8.8\", \"tech_id\":\"{$test_array[0]}\", \"alias\":\"{$alias}\"}'";
+      $command = "ansible-playbook --limit=$alias " . ANSIBLE_PLAYBOOK_PATH . "execute_custom_test.yaml --extra-vars '{\"executable\":\"{$result[0]['executable']}\", \"test_file\":\"{$result[0]['file_name']}\",\"directory\":\"./customs/{$test_array[0]}\", \"test_number\":\"{$test_array[1]}\", \"args\":\"{$args}\", \"tech_id\":\"{$test_array[0]}\", \"alias\":\"{$alias}\"}'";
         
       
     }else{
-      echo "that";
+      echo "remote exe";
       // remote execution that means its executed from ansible server to remote machine
-      $command = "ansible-playbook " . ANSIBLE_PLAYBOOK_PATH . "execute_custom_test_remote.yaml --extra-vars '{\"executable\":\"{$result[0]['executable']}\", \"test_file\":\"{$result[0]['file_name']}\", \"test_number\":\"{$test_array[1]}\", \"args\":\"8.8.8.8\", \"tech_id\":\"{$test_array[0]}\", \"local_execution\":false}'";
+      $command = "ansible-playbook " . ANSIBLE_PLAYBOOK_PATH . "execute_custom_test_remote.yaml --extra-vars '{\"executable\":\"{$result[0]['executable']}\", \"test_file\":\"{$result[0]['file_name']}\", \"test_number\":\"{$test_array[1]}\", \"args\":\"{$args}\", \"tech_id\":\"{$test_array[0]}\", \"local_execution\":false}'";
       echo $command;            
     }
     
@@ -165,10 +182,11 @@ if (isset($_GET["action"])) {
       }
       break;
     case "executeTest":
-      if(isset($_GET["alias"]) && isset($_GET['id']))
+      if(isset($_GET["alias"]) && isset($_GET['id']) && isset($_GET['args']))
       $alias = $_GET["alias"];
       $test_to_execute = $_GET['id'];
-      executeAnsibleTest($alias, $test_to_execute);      
+      $args = $_GET['args'];
+      executeAnsibleTest($alias, $test_to_execute, $args);      
       break;
     default:
       // Invalid action

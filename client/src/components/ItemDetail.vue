@@ -10,17 +10,12 @@
           :key="item.id"
           :item="item"
           :execute-output="item.executeOutput"
-          @test-selected="handleTestSelect($event)"
+          @test-selected="handleTestSelect"
         />
       </div>
       <!-- Left -->
       <div class="w-2/6 h-3/6 flex flex-col items-center justify-between">
-        <RouterLink
-          :to="{ name: 'Home' }"
-          class="flex items-center justify-center w-48 h-12 border-solid border border-black bg-gray-400 px-4 py-2 rounded-md shadow-md focus:shadow-md mb-10"
-        >
-          HOME
-        </RouterLink>
+        
         <RouterLink
           :to="{ name: 'HistoryPage', params: { id: $route.params.id } }"
           class="flex items-center justify-center w-48 h-12 border-solid border border-black bg-gray-400 px-4 py-2 rounded-md shadow-md focus:shadow-md mb-10"
@@ -46,30 +41,19 @@
             </option>
           </select>
         </div>
-        <button
-          class="w-48 h-12 border-solid border border-black px-4 py-2 rounded-md shadow-md focus:shadow-md mb-10"
-          @click="toggleCustomTestModal"
-        >
-          <span>Add Custom Test</span>
-        </button>
+        
         <TargetModal
           :show="showCustomTestModal"
           @toggleModal="toggleCustomTestModal"
         >
-          <template #header>
-            <div>
-              <div class="flex flex-col">
-                <h2 class="font-bold">Add Custom Test</h2>
-              </div>
-            </div>
-          </template>
+          
           <template #body>
             <CustomTestForm />
           </template>
         </TargetModal>
         <button
           class="w-48 h-12 border-solid border border-black px-4 py-2 rounded-md shadow-md focus:shadow-md mb-10"
-          @click="executeTest(testId, selectedTarget)"
+          @click="executeTest(testId, selectedTarget, testArguments)"
           :title="
             !selectedTarget || !selectedTest
               ? 'Select a target and a test first.'
@@ -137,6 +121,7 @@ export default {
       testExecuted: false,
       testDetected: false,
       testId: null,
+      testArguments: 'picavoda',
     };
   },
   computed: {
@@ -155,7 +140,7 @@ export default {
     createTestId(technique_id, test_number) {
       this.testId = `${technique_id}-${test_number}`;
     },
-    executeTest(testId, alias) {
+    executeTest(testId, alias, args) {
       this.isLoading = true;
       this.createTestId(
         this.selectedTest.technique_id,
@@ -163,7 +148,7 @@ export default {
       );
       this.$axios
         .get(
-          `run-ansible.php?action=executeTest&id=${testId}&alias=${alias}`,
+          `run-ansible.php?action=executeTest&id=${testId}&alias=${alias}&args=${args}`,
           true
         )
         .then((response) => {
@@ -238,9 +223,11 @@ export default {
         );
       }
     },
-    handleTestSelect(selectedTest) {
-      this.selectedTest = selectedTest;
+    handleTestSelect({test, args}) {
+      this.selectedTest = test;
+      this.testArguments = args;
       this.testExecuted = false;
+      console.log(this.testArguments);
     },
     saveTestResult() {
       const selectedItem = this.items.find(
@@ -296,7 +283,7 @@ export default {
       if (newSelectedTest && this.selectedTarget) {
         this.createTestId(
           newSelectedTest.technique_id,
-          newSelectedTest.test_number
+          newSelectedTest.test_number,
         );
       }
     },
