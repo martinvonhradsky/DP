@@ -36,22 +36,25 @@
       </div>
     </div>
     <!-- Right side - Custom tests table -->
-    <div style="display: flex; flex-direction: row;">
+    <div style="display: flex; flex-direction: row; ">
       <!-- First table for the left column -->
       <div style="flex: 1; overflow: auto;">
-        <table class="border-collapse border border-gray-400 w-full" style="table-layout: fixed;">
+        <table class="border-collapse border border-gray-400 w-full" style="table-layout: fixed; width: 200-px; height: 100px; overflow-y: scroll;">
           <thead>
             <tr>
-              <th class="border border-gray-400 px-4 py-2">Technic ID</th>
+              <th class="border border-gray-400 px-4 py-2" style="width: 200px;">Technic ID</th>
             </tr>
           </thead>
-          <tbody>
-            <tr v-for="(tech) in leftColumn" :key="tech" @click="handleTechSelect(tech)" :class="{ 'bg-blue-200': selectedTech === tech }">
-              <td class="border border-gray-400 px-4 py-2">{{ tech.technique_id }}</td>
-            </tr>
-          </tbody>
+          <div style="height: 80vh; width: inherit; overflow-y: scroll;">
+            <tbody>
+              <tr v-for="(tech) in leftColumn" :key="tech" @click="handleTechSelect(tech)" :class="{ 'bg-blue-200': selectedTech === tech }">
+                <td class="w-fuborder border-gray-400 px-4 py-2" style="width: 200px;">{{ tech.technique_id }}</td>
+              </tr>
+            </tbody>
+          </div>
         </table>
       </div>
+
 
       <!-- Second table for the right column -->
       <div style="flex: 1; overflow: auto;">
@@ -92,7 +95,7 @@ export default {
         desc: "Description",
         filename: "Name of entrypoint - file to be executed",
         executable: "Executable Path",
-        local: "Execute Test locally on Remote Target Device",
+        local: "Execute Test on Target Device",
         args: "Additional Arguments"
       },
       fields: {

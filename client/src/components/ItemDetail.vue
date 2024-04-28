@@ -11,6 +11,7 @@
           :item="item"
           :execute-output="item.executeOutput"
           @test-selected="handleTestSelect"
+          @test-arguments="handleArguments"
         />
       </div>
       <!-- Left -->
@@ -59,8 +60,8 @@
               ? 'Select a target and a test first.'
               : missingTooltip
           "
-          :disabled="selectedTest ? (selectedTest.local_execution ? (!selectedTarget || !selectedTest) : false) : true "
-          :class="{ 'cursor-not-allowed': selectedTest ? (selectedTest.local_execution ? (!selectedTarget || !selectedTest) : false) : true }"
+          :disabled="selectedTest ? (selectedTest.local_execution ? !selectedTarget : false) : true "
+          
         >
           <span v-if="!isLoading">Execute Test</span>
           <div v-else>
@@ -141,6 +142,8 @@ export default {
       this.testId = `${technique_id}-${test_number}`;
     },
     executeTest(testId, alias, args) {
+      console.log("ITEM DETAIL executeTest(testId): "+testId);      
+      console.log("ITEM DETAIL executeTest(args): "+args);
       this.isLoading = true;
       this.createTestId(
         this.selectedTest.technique_id,
@@ -223,11 +226,16 @@ export default {
         );
       }
     },
-    handleTestSelect({test, args}) {
+    handleTestSelect(test) {
       this.selectedTest = test;
-      this.testArguments = args;
+      this.createTestId(
+          this.selectedTest.technique_id,
+          this.selectedTest.test_number
+        );
       this.testExecuted = false;
-      console.log(this.testArguments);
+    },
+    handleArguments(args){
+      this.testArguments = args;
     },
     saveTestResult() {
       const selectedItem = this.items.find(
@@ -260,7 +268,6 @@ export default {
           this.$axios
             .get("api.php?action=result")
             .then((response) => {
-              console.log(this.selectedTest);
               const selectedItem = this.items.find(
                 (item) => item.id === this.selectedTest.technique_id
               );
