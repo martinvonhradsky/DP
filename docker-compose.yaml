@@ -9,6 +9,7 @@ services:
       - .env
     volumes:
       - .:/var/www/html/module/
+      - data-ansible_hosts:/etc/ansible/secmon_hosts
       - data-volume:/data
       - data-known_hosts:/data-known_hosts
     ports:
@@ -60,3 +61,4 @@ volumes:
   db-data:
   data-volume:
   data-known_hosts:
+  data-ansible_hosts:

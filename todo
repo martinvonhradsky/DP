@@ -1,14 +1,10 @@
-Vikend  session:
+ Vikend  session:
 
 - pustat SSH na inom porte ako 22
 - pridat moznost specifikovat port
 
 ansible-playbook "./execute_custom_test.yaml" --extra-vars {"executable":"/bin/bash", "test_file":"script.sh","directory":"./customs/T1548","test_number":"1", "args":"mooore"}
 
-
-
-docasne vypnute mazanie ansible/hosts
-api.php line 310 funkcia getAnsibleOutput
 
 SELECT ip, alias, sudo_user, password, platform FROM target WHERE alias='centos'
 
@@ -22,3 +18,16 @@ CustomTestForm:
 
 Spustenie testu s argumentami:
   dostat hodnotu z inut textu TechDetail line 60 do executeTest line 158 v ItemDetail
+
+
+TODO:
+  - output.txt pleasure
+  - pridat paralelizmus na requesty
+  - podpora pre sudo aj cez ssh kluce
+
+
+Qs:
+  - Platform in target?
+
+Done:
+  - fix: ansible/hosts sa vymaze po kazdom spusteni
