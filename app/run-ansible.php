@@ -34,6 +34,8 @@ function setAnsibleHosts($alias) {
   if ($pwd != "") {
     $hostsContent .= " ansible_ssh_pass=" . $pwd;
   }
+  $hostsContent .= " ansible_sudo_pass=" . $pwd;
+
   $hostsContent .= "\n";
   
   if (!is_dir(ANSIBLE_HOSTS_DIR)) {

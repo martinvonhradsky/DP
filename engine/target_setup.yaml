@@ -16,7 +16,7 @@
           - epel-release
           - sshpass
         state: present
-      when: ansible_os_family == "Red Hat"
+      when: ansible_os_family == "RedHat"
 
     - name: Install EPEL package
       apt:
@@ -30,13 +30,13 @@
       ansible.builtin.get_url:
         url: https://packages.microsoft.com/config/rhel/7/prod.repo
         dest: /etc/yum.repos.d/
-      when: ansible_os_family == "Red Hat"
+      when: ansible_os_family == "RedHat"
 
     - name: Install Powershell RedHat
       ansible.builtin.yum:
         name: powershell
         state: present 
-      when: ansible_os_family == "Red Hat"
+      when: ansible_os_family == "RedHat"
 
     - name: Download PGP security keys Debian
       get_url:
@@ -77,7 +77,7 @@
       yum:
         name: rsyslog
         state: present
-      when: ansible_os_family == "Red Hat"
+      when: ansible_os_family == "RedHat"
 
     - name: Install rsyslog on Debian
       become: true
@@ -92,9 +92,12 @@
         url: "https://pastebin.com/raw/jTtrkJf8"
         dest: "/var/log/secmon.conf"
 
+    # The nice way with service or ansible.builtin.systemd_service did not work.
     - name: Restart rsyslog
       become: true
-      service:
-        name: rsyslog
-        state: restarted
+      ansible.builtin.command:
+        argv:
+          - systemctl
+          - restart
+          - rsyslog
 
