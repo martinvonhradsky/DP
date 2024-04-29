@@ -2,33 +2,13 @@
   <div class="flex">
     <!-- Left side - Input fields for selected test -->
     <div class="flex-1">
-      <div v-for="(field, fieldName) in fields" :key="fieldName" class="mb-5">
-        <label class="block text-gray-700 font-bold mb-2" :for="fieldName">
-          {{ labels[fieldName] }}
-        </label>
-        <input
-          v-if="fieldName !== 'local' && fieldName !== 'args'"
-          class="w-full h-fit border border-gray-300 rounded-md py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-          :id="fieldName"
-          type="text"
-          :placeholder="field.placeholder"
-          :value="selectedTest ? selectedTest[fieldName] : field.value"
-          @input="updateFieldValue(fieldName, $event.target.value)"
-        />
-        <input
-          v-else
-          class="mr-2 leading-tight"
-          :id="fieldName"
-          type="checkbox"
-          v-model="field.value"
-        />
-      </div>
+      <FormInput
+        :fields="fields"
+        :labels="labels"
+        @updateField="handleFieldUpdate"
+      />
       <div class="flex justify-between">
-        <button
-          class="btn btn-blue"
-          type="submit"
-          @click="submitCustomTest"
-        >
+        <button class="btn btn-blue" type="submit" @click="submitCustomTest">
           Add Custom Test
         </button>
         <button class="btn btn-blue" @click="editCustomTest">Edit</button>
@@ -36,37 +16,70 @@
       </div>
     </div>
     <!-- Right side - Custom tests table -->
-    <div style="display: flex; flex-direction: row; ">
+    <div style="display: flex; flex-direction: row">
       <!-- First table for the left column -->
-      <div style="flex: 1; overflow: auto;">
-        <table class="border-collapse border border-gray-400 w-full" style="table-layout: fixed; width: 200-px; height: 100px; overflow-y: scroll;">
+      <div style="flex: 1; overflow: auto">
+        <table
+          class="border-collapse border border-gray-400 w-full"
+          style="
+            table-layout: fixed;
+            width: 200-px;
+            height: 100px;
+            overflow-y: scroll;
+          "
+        >
           <thead>
             <tr>
-              <th class="border border-gray-400 px-4 py-2" style="width: 200px;">Technic ID</th>
+              <th class="border border-gray-400 px-4 py-2" style="width: 200px">
+                Technic ID
+              </th>
             </tr>
           </thead>
-          <div style="height: 80vh; width: inherit; overflow-y: scroll;">
+          <div style="height: 80vh; width: inherit; overflow-y: scroll">
             <tbody>
-              <tr v-for="(tech) in leftColumn" :key="tech" @click="handleTechSelect(tech)" :class="{ 'bg-blue-200': selectedTech === tech }">
-                <td class="w-fuborder border-gray-400 px-4 py-2" style="width: 200px;">{{ tech.technique_id }}</td>
+              <tr
+                v-for="tech in leftColumn"
+                :key="tech"
+                @click="handleTechSelect(tech)"
+                :class="{ 'bg-blue-200': selectedTech === tech }"
+              >
+                <td
+                  class="w-fuborder border-gray-400 px-4 py-2"
+                  style="width: 200px"
+                >
+                  {{ tech.technique_id }}
+                </td>
               </tr>
             </tbody>
           </div>
         </table>
       </div>
 
-
       <!-- Second table for the right column -->
-      <div style="flex: 1; overflow: auto;">
-        <table class="border-collapse border border-gray-400 w-full" style="table-layout: fixed;">
+      <div style="flex: 1; overflow: auto">
+        <table
+          class="border-collapse border border-gray-400 w-full"
+          style="table-layout: fixed"
+        >
           <thead>
             <tr>
               <th class="border border-gray-400 px-4 py-2">Test</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="(test) in customTests" :key="test" @click="handleTestSelect(test)" :class="{'bg-blue-200': selectedTest === test}">
-              <td v-if="selectedTech && selectedTech.technique_id === test.technique_id" class="border border-gray-400 px-4 py-2">
+            <tr
+              v-for="test in customTests"
+              :key="test"
+              @click="handleTestSelect(test)"
+              :class="{ 'bg-blue-200': selectedTest === test }"
+            >
+              <td
+                v-if="
+                  selectedTech &&
+                  selectedTech.technique_id === test.technique_id
+                "
+                class="border border-gray-400 px-4 py-2"
+              >
                 {{ test.name }}
               </td>
             </tr>
@@ -78,8 +91,13 @@
 </template>
 
 <script>
+import FormInput from "./shared/FormInput.vue";
+
 export default {
   name: "TargetForm",
+  components: {
+    FormInput,
+  },
   props: {
     selectedTarget: {
       type: String,
@@ -89,24 +107,55 @@ export default {
   data() {
     return {
       labels: {
-        url: "URL of Git repository", 
+        url: "URL of Git repository",
         id: "ID of Technic",
         name: "Test Name to be displayed in application",
         desc: "Description",
         filename: "Name of entrypoint - file to be executed",
         executable: "Executable Path",
         local: "Execute Test on Target Device",
-        args: "Additional Arguments"
+        args: "Additional Arguments",
       },
       fields: {
-        url: { value: "", tooltip: "Enter the URL of the target", placeholder: "Enter URL" },
-        id: { value: "", tooltip: "Enter the ID of the target", placeholder: "Enter ID" },
-        name: { value: "", tooltip: "Enter the name of the test", placeholder: "Enter test name" },
-        desc: { value: "", tooltip: "Enter a description for the test", placeholder: "Enter description" },
-        filename: { value: "", tooltip: "Enter the filename of the test", placeholder: "Enter filename" },
-        executable: { value: "", tooltip: "Enter the path to the executable", placeholder: "Enter executable path" },
-        local: { value: false, tooltip: "Check if the test is to be executed locally" },
-        args: { value: "", tooltip: "Enter any additional arguments for the test", placeholder: "Enter additional arguments" }
+        url: {
+          value: "",
+          tooltip: "Enter the URL of the target",
+          placeholder: "Enter URL",
+        },
+        id: {
+          value: "",
+          tooltip: "Enter the ID of the target",
+          placeholder: "Enter ID",
+        },
+        name: {
+          value: "",
+          tooltip: "Enter the name of the test",
+          placeholder: "Enter test name",
+        },
+        desc: {
+          value: "",
+          tooltip: "Enter a description for the test",
+          placeholder: "Enter description",
+        },
+        filename: {
+          value: "",
+          tooltip: "Enter the filename of the test",
+          placeholder: "Enter filename",
+        },
+        executable: {
+          value: "",
+          tooltip: "Enter the path to the executable",
+          placeholder: "Enter executable path",
+        },
+        local: {
+          value: false,
+          tooltip: "Check if the test is to be executed locally",
+        },
+        args: {
+          value: "",
+          tooltip: "Enter any additional arguments for the test",
+          placeholder: "Enter additional arguments",
+        },
       },
       customTests: null,
       selectedTest: null,
@@ -126,13 +175,16 @@ export default {
     getFieldValue(fieldName) {
       return fieldName.value;
       //return this.selectedTest ? this.selectedTest[fieldName] : '';
-    }
+    },
   },
   mounted() {
     this.fetchTests();
     this.fetchIDs();
   },
   methods: {
+    handleFieldUpdate({ fieldName, value }) {
+      this.fields[fieldName].value = value;
+    },
     async submitCustomTest() {
       console.log("clicked");
       if (!this.isFormValid) return;
@@ -166,7 +218,7 @@ export default {
       this.$axios
         .get("api.php?action=get_custom_tests")
         .then((response) => {
-          this.customTests = response.data;         
+          this.customTests = response.data;
         })
         .catch((error) => {
           console.log(error);
@@ -176,28 +228,27 @@ export default {
       this.$axios
         .get("api.php?action=get_custom_ids")
         .then((response) => {
-          this.leftColumn = response.data;         
+          this.leftColumn = response.data;
         })
         .catch((error) => {
           console.log(error);
         });
     },
-    handleTechSelect(test){
-      if(this.selectedTech === test){
+    handleTechSelect(test) {
+      if (this.selectedTech === test) {
         this.selectedTech = null;
-      }else{
+      } else {
         this.selectedTech = test;
         this.selectedTest = null;
       }
     },
-    handleTestSelect(test){
-      if(this.selectedTest === test){
+    handleTestSelect(test) {
+      if (this.selectedTest === test) {
         this.selectedTest = null;
-      }else{
+      } else {
         this.selectedTest = test;
       }
     },
-    
   },
 };
 </script>
