@@ -94,7 +94,7 @@
 import FormInput from "./shared/FormInput.vue";
 
 export default {
-  name: "TargetForm",
+  name: "CustomTestForm",
   components: {
     FormInput,
   },
@@ -107,7 +107,6 @@ export default {
   data() {
     return {
       labels: {
-        url: "URL of Git repository",
         id: "ID of Technic",
         name: "Test Name to be displayed in application",
         desc: "Description",
@@ -117,11 +116,6 @@ export default {
         args: "Additional Arguments",
       },
       fields: {
-        url: {
-          value: "",
-          tooltip: "Enter the URL of the target",
-          placeholder: "Enter URL",
-        },
         id: {
           value: "",
           tooltip: "Enter the ID of the target",

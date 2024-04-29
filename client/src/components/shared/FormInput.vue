@@ -33,5 +33,3 @@ export default {
   emits: ["updateField"],
 };
 </script>
-
-<style scoped></style>
