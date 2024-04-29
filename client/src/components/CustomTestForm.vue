@@ -2,13 +2,17 @@
   <div class="flex">
     <!-- Left side - Input fields for selected test -->
     <div class="flex-1">
-      <FormInput
+      <FormCustomTest
         :fields="fields"
         :labels="labels"
         @updateField="handleFieldUpdate"
       />
       <div class="flex justify-between">
-        <button class="btn btn-blue" type="submit" @click="submitCustomTest">
+        <button
+          class="btn btn-blue"
+          type="submit"
+          @click="testStore.submitCustomTest"
+        >
           Add Custom Test
         </button>
         <button class="btn btn-blue" @click="editCustomTest">Edit</button>
@@ -91,12 +95,12 @@
 </template>
 
 <script>
-import FormInput from "./shared/FormInput.vue";
+import FormCustomTest from "./shared/FormCustomTest.vue";
 
 export default {
   name: "CustomTestForm",
   components: {
-    FormInput,
+    FormCustomTest,
   },
   props: {
     selectedTarget: {
