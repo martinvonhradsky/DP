@@ -2,7 +2,7 @@
   <div @submit.prevent>
     <div class="mb-5">
       <label class="block text-gray-700 font-bold mb-2" for="target-ip">
-        Target IP
+        Target IP / Hostname
       </label>
       <input
         class="w-full h-fit border border-gray-300 rounded-md py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
@@ -63,7 +63,7 @@
       />
     </div>
     <div class="mb-5">
-      <label class="block text-gray-700 font-bold mb-2" title="Place this in ~/.ssh/authorized_keys on the target server to support passwordless connection.">Public SSH Key &#128712;</label>
+      <label class="block text-gray-700 font-bold mb-2" title="Place this in `/home/<user>/.ssh/authorized_keys` on the target server to support passwordless connection.">Public SSH Key &#128712;</label>
 
       <p style="word-break: break-all;">{{ sshKey }}</p>
     </div>

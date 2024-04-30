@@ -42,12 +42,21 @@ def createTableTarget():
             cur.execute("""
                 CREATE TABLE target (
                 alias varchar(50) UNIQUE,
-                IP INET NOT NULL,
+                IP VARCHAR(100) NOT NULL,
                 sudo_user VARCHAR(50) NOT NULL,
                 password VARCHAR(50) NOT NULL,
                 platform VARCHAR(20) NOT NULL
                 );
             """)
+            debian_values = ('debian', 'test-target-debian', 'test', 'password', 'debian')
+            centos_values = ('centos', 'test-target-centos', 'test', 'password', 'centos')
+            insert_query = """
+                INSERT INTO target (alias, IP, sudo_user, password, platform)
+                VALUES (%s, %s, %s, %s, %s)
+            """
+            for row in [debian_values, centos_values]:
+                cur.execute(insert_query, row)
+            conn.commit()
         cur.close()
         return 1
     except Exception as e:
