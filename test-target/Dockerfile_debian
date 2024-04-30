@@ -1,0 +1,43 @@
+# Vulnerable Apache 2.4.49 server (exploits CVE-2021-41773 & CVE-2021-42013) running on Debian 10.10 
+
+FROM httpd:2.4.49
+
+# Install necessary packages
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+    openssh-server sudo python3 wget ca-certificates && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copy vulnerable Apache config
+COPY debian/httpd_conf_vulnerable /usr/local/apache2/conf/httpd.conf
+
+# SystemD service file so systemctl can be used.
+COPY debian/httpd.service /etc/systemd/system
+
+# User:     test
+# Password: password
+RUN useradd -m test && \
+    echo 'test:password' | chpasswd && \
+    adduser test sudo
+
+# Copy patched systemctl for Docker
+COPY common/systemctl3.py /usr/bin/systemctl
+
+# Copy SSH host keys
+COPY common/ssh_host_ed25519_key common/ssh_host_ed25519_key.pub \
+     common/ssh_host_ecdsa_key common/ssh_host_ecdsa_key.pub \
+     common/ssh_host_rsa_key common/ssh_host_rsa_key.pub /etc/ssh/
+RUN chmod 600 /etc/ssh/ssh_host_ed25519_key /etc/ssh/ssh_host_ecdsa_key /etc/ssh/ssh_host_rsa_key && \
+    chmod 644 /etc/ssh/ssh_host_ed25519_key.pub /etc/ssh/ssh_host_ecdsa_key.pub /etc/ssh/ssh_host_rsa_key.pub
+
+# Enable SSH and Apache to start on image execution.
+# For some reason, sshd wouldn't work with enable.
+RUN systemctl restart sshd
+RUN systemctl enable httpd
+
+# For systemctl logging
+# RUN touch /var/log/systemctl.debug.log
+# RUN touch /var/log/systemctl.log
+
+CMD ["/usr/bin/systemctl"]

@@ -1,5 +1,5 @@
-#! /usr/bin/python2
-# generated from systemctl3.py - do not change
+#! /usr/bin/python3
+# type hints are provided in 'types/systemctl3.pyi'
 from __future__ import print_function
 import threading
 import grp

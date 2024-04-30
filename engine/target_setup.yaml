@@ -10,7 +10,7 @@
 
     - debug: msg='I got executed!'
     # install Extra Packages for Enterprise Linux
-    - name: Install EPEL package
+    - name: Install EPEL package RedHat
       ansible.builtin.yum:
         name:
           - epel-release
@@ -18,7 +18,7 @@
         state: present
       when: ansible_os_family == "RedHat"
 
-    - name: Install EPEL package
+    - name: Install EPEL package Debian
       apt:
         name:
           - sshpass
@@ -38,32 +38,28 @@
         state: present 
       when: ansible_os_family == "RedHat"
 
-    - name: Download PGP security keys Debian
+    - name: Download Powershell Debian
       get_url:
-        url: https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb
-        dest: /tmp/packages-microsoft-prod.deb
+        url: https://github.com/PowerShell/PowerShell/releases/download/v7.4.2/powershell_7.4.2-1.deb_amd64.deb
+        dest: /tmp/powershell_7.4.2-1.deb_amd64.deb
         force_basic_auth: yes
       when: ansible_os_family == "Debian"
 
-    - name: Register PGP security keys Debian
-      command:
-        cmd: dpkg -i /tmp/packages-microsoft-prod.deb
-      when: ansible_os_family == "Debian"
-
-    - name: Update packege lists Debian
-      apt:
-        update_cache: yes
-      when: ansible_os_family == "Debian"
-
-    - name: Install latest version of PowerShell 7 Debian
-      apt:
-        name: powershell
+    - name: Install Powershell Debian
+      ansible.builtin.apt:
+        deb: /tmp/powershell_7.4.2-1.deb_amd64.deb
       when: ansible_os_family == "Debian"
 
 
-  # install invoke-atomic         
+  # install invoke-atomic
+    - name: Download Invoke Atomic
+      get_url:
+        url: https://raw.githubusercontent.com/redcanaryco/invoke-atomicredteam/master/install-atomicredteam.ps1
+        dest: /tmp/install-atomicredteam.ps1
+        force_basic_auth: yes
+
     - name: Install InvokeAtomic
-      shell: IEX (IWR 'https://raw.githubusercontent.com/redcanaryco/invoke-atomicredteam/master/install-atomicredteam.ps1' -UseBasicParsing); Install-AtomicRedTeam -getAtomics -Force 
+      shell: . /tmp/install-atomicredteam.ps1; Install-AtomicRedTeam -getAtomics -Force 
       args:
         executable: /usr/bin/pwsh
       register: result

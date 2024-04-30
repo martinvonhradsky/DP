@@ -53,9 +53,18 @@ services:
       - db
       - web
 
-  test-target:
+  # Exposes vulnerable Apache server on port 8080.
+  test-target-debian:
     build:
-      context: ./test-target/
+      context: ./test-target
+      dockerfile: Dockerfile_debian
+    ports:
+      - "8080:80"
+
+  test-target-centos:
+    build:
+      context: ./test-target
+      dockerfile: Dockerfile_centos
 
 volumes:
   db-data:
