@@ -171,7 +171,7 @@ function executeQuery($select, &$didSucceed = NULL) {
       // Fetch all the rows and return as JSON
       $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
       if($result == null){          
-          echo '[{"Error":"Nothing to return."}]';
+          echo '[]';
           return null;
       }
       return json_encode($result);
