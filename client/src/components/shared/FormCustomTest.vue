@@ -5,6 +5,7 @@
       :key="index"
       :field="input"
       @updateField="handleUpdateField"
+      @hoverField="handleHoverField"
     />
     <CheckboxInputComponent
       v-for="(input, index) in checkboxInputs"
@@ -51,7 +52,15 @@ export default {
     const handleUpdateField = (fieldName, value) => {
       store.handleFieldUpdate(fieldName, value);
     };
-    return { textInputs, checkboxInputs, handleUpdateField };
+
+    const handleHoverField = (fieldName) => {
+      if (fieldName === "id") {
+        store.fetchIDs();
+        store.fetchTests();
+      }
+    };
+
+    return { textInputs, checkboxInputs, handleUpdateField, handleHoverField };
   },
 };
 </script>
