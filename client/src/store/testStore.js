@@ -65,7 +65,6 @@ export const useTestStore = defineStore("testStore", {
       }
     },
     async submitCustomTest() {
-      console.log("this.isFormValid", this.isFormValid);
       if (!this.isFormValid) return;
 
       const requestData = JSON.stringify({

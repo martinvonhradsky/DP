@@ -1,6 +1,5 @@
 <template>
   <div class="flex">
-    <!-- Left side - Input fields for selected test -->
     <div class="flex-1">
       <FormCustomTest
         :fields="fields"
@@ -8,20 +7,12 @@
         @updateField="handleFieldUpdate"
       />
       <div class="flex justify-between">
-        <button
-          class="btn btn-blue"
-          type="submit"
-          @click="testStore.submitCustomTest"
-        >
+        <button class="btn btn-blue" type="submit" @click="submitCustomTest">
           Add Custom Test
         </button>
-        <button class="btn btn-blue" @click="editCustomTest">Edit</button>
-        <button class="btn btn-blue" @click="deleteCustomTest">Delete</button>
       </div>
     </div>
-    <!-- Right side - Custom tests table -->
     <div style="display: flex; flex-direction: row">
-      <!-- First table for the left column -->
       <div style="flex: 1; overflow: auto">
         <table
           class="border-collapse border border-gray-400 w-full"
@@ -59,7 +50,6 @@
         </table>
       </div>
 
-      <!-- Second table for the right column -->
       <div style="flex: 1; overflow: auto">
         <table
           class="border-collapse border border-gray-400 w-full"

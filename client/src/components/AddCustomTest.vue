@@ -38,7 +38,6 @@ export default {
       labels: testStore.labels,
       handleFieldUpdate: testStore.handleFieldUpdate,
       submitCustomTest: testStore.submitCustomTest,
-      // Add other necessary methods or computed properties from the store
     };
   },
 

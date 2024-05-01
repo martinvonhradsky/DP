@@ -31,10 +31,10 @@ export default {
 
     const textInputs = computed(() => {
       return Object.keys(store.fields)
-        .filter((key) => key !== "local" && key !== "args") // Assuming these are within fields and are not checkboxes
+        .filter((key) => key !== "local" && key !== "args")
         .map((key) => ({
           name: key,
-          value: store.fields[key].value, // Access the nested value
+          value: store.fields[key].value,
           type: "text",
           placeholder: `Enter ${key}`,
         }));
@@ -43,13 +43,13 @@ export default {
     const checkboxInputs = computed(() => {
       return ["local", "args"].map((key) => ({
         name: key,
-        value: store.fields[key].value, // Ensure these keys are also under fields if they are checkboxes
+        value: store.fields[key].value,
         type: "checkbox",
       }));
     });
 
     const handleUpdateField = (fieldName, value) => {
-      store.handleFieldUpdate(fieldName, value); // Adjust to match store method signature
+      store.handleFieldUpdate(fieldName, value);
     };
     return { textInputs, checkboxInputs, handleUpdateField };
   },
