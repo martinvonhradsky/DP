@@ -1,84 +1,75 @@
 <template>
-  <div class="flex">
-    <div class="flex-1">
-      <FormCustomTest
-        :fields="fields"
-        :labels="labels"
-        @updateField="handleFieldUpdate"
-      />
-      <div class="flex justify-between">
+  <div class="flex justify-around">
+    <div class="w-1/5 min-w-1/5">
+      <FormCustomTest :fields="store.fields" @updateField="handleUpdateField" />
+      <div>
         <button class="btn btn-blue" type="submit" @click="submitCustomTest">
           Add Custom Test
         </button>
       </div>
     </div>
-    <div style="display: flex; flex-direction: row">
-      <div style="flex: 1; overflow: auto">
-        <table
-          class="border-collapse border border-gray-400 w-full"
-          style="
-            table-layout: fixed;
-            width: 200-px;
-            height: 100px;
-            overflow-y: scroll;
-          "
-        >
-          <thead>
-            <tr>
-              <th class="border border-gray-400 px-4 py-2" style="width: 200px">
-                Technic ID
-              </th>
-            </tr>
-          </thead>
-          <div style="height: 80vh; width: inherit; overflow-y: scroll">
-            <tbody>
-              <tr
-                v-for="tech in store.leftColumn"
-                :key="tech"
-                @click="handleTechSelect(tech)"
-                :class="{ 'bg-blue-200': selectedTech === tech }"
-              >
-                <td
-                  class="w-fuborder border-gray-400 px-4 py-2"
-                  style="width: 200px"
-                >
-                  {{ tech.technique_id }}
-                </td>
-              </tr>
-            </tbody>
-          </div>
-        </table>
-      </div>
 
-      <div style="flex: 1; overflow: auto">
-        <table
-          class="border-collapse border border-gray-400 w-full"
-          style="table-layout: fixed"
-        >
-          <thead>
-            <tr>
-              <th class="border border-gray-400 px-4 py-2">Test</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="test in customTests"
-              :key="test"
-              @click="handleTestSelect(test)"
-              :class="{ 'bg-blue-200': selectedTest === test }"
-            >
-              <td
-                v-if="
-                  selectedTech &&
-                  selectedTech.technique_id === test.technique_id
-                "
-                class="border border-gray-400 px-4 py-2"
-              >
-                {{ test.name }}
-              </td>
-            </tr>
-          </tbody>
-        </table>
+    <div class="pt-32 ms-2 w-3/5 min-w-3/5">
+      <div class="flex justify-start">
+        <div v-if="store.leftColumn">
+          <div class="table-container">
+            <table class="border-collapse border border-gray-400 h-max-content">
+              <div>
+                <h4
+                  class="border border-gray-400 px-4 py-2"
+                  v-if="leftColumn !== null"
+                >
+                  Technic ID
+                </h4>
+              </div>
+              <tbody>
+                <tr
+                  v-for="tech in store.leftColumn"
+                  :key="tech"
+                  @click="handleTechSelect(tech)"
+                  :class="{ 'bg-blue-200': store.selectedTech === tech }"
+                >
+                  <td
+                    class="border border-gray-400 px-4 py-2"
+                    style="width: 200px"
+                  >
+                    {{ tech.technique_id }}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div v-if="store.selectedTech">
+          <div class="table-container2 ps-2">
+            <table class="border-collapse border border-gray-400 min-w-80">
+              <thead>
+                <tr>
+                  <th class="border border-gray-400 px-4 py-2 w-48">Test</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="test in store.customTests"
+                  :key="test"
+                  @click="handleTestSelect(test)"
+                  :class="{ 'bg-blue-200': store.selectedTest === test }"
+                >
+                  <td
+                    v-if="
+                      store.selectedTech &&
+                      store.selectedTech.technique_id === test.technique_id
+                    "
+                    class="border border-gray-400 px-4 py-2"
+                  >
+                    {{ test.name }}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -98,14 +89,34 @@ export default {
       store: useTestStore(),
     };
   },
-  mounted() {
-    this.store.fetchTests();
-    this.store.fetchIDs();
+  methods: {
+    handleUpdateField(fieldName, value) {
+      this.store.handleFieldUpdate({ field: fieldName, value });
+    },
+    handleTechSelect(tech) {
+      this.store.handleTechSelect(tech);
+    },
+    handleTestSelect(test) {
+      this.store.handleTestSelect(test);
+    },
+    submitCustomTest() {
+      this.store.submitCustomTest();
+    },
   },
 };
 </script>
 
 <style scoped>
+.table-container {
+  overflow-y: auto; /* Enable vertical scrolling */
+  max-height: 48vh; /* Set maximum height */
+}
+
+.table-container2 {
+  overflow-y: auto; /* Enable vertical scrolling */
+  max-height: 48vh; /* Set maximum height */
+}
+
 .spinner {
   border-top: 2px solid #666;
   border-right: 2px solid #666;

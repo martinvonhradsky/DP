@@ -9,6 +9,7 @@
       :placeholder="field.placeholder"
       :value="field.value"
       @input="updateValue($event.target.value)"
+      @mouseover="$emit('hoverField', field.name)"
     />
   </div>
 </template>

@@ -60,7 +60,6 @@ export const useTestStore = defineStore("testStore", {
   },
   actions: {
     handleFieldUpdate({ field, value }) {
-      console.log("field", field, "value", value, this.fields);
       if (this.fields[field]) {
         this.fields[field].value = value;
       }
@@ -85,7 +84,6 @@ export const useTestStore = defineStore("testStore", {
       try {
         const response = await axios.get("/api.php?action=get_custom_tests");
         this.customTests = response.data;
-        console.log("fetchTests", response.data);
       } catch (error) {
         console.error("Failed to fetch tests:", error);
       }
@@ -93,7 +91,6 @@ export const useTestStore = defineStore("testStore", {
     async fetchIDs() {
       try {
         const response = await axios.get("/api.php?action=get_custom_ids");
-        console.log("fetchIDs", response.data);
         this.leftColumn = response.data;
       } catch (error) {
         console.error("Failed to fetch IDs:", error);
@@ -102,10 +99,10 @@ export const useTestStore = defineStore("testStore", {
     handleTechSelect(test) {
       if (this.selectedTech === test) {
         this.selectedTech = null;
-        this.selectedTest = null; // Ensure that any associated test is deselected
+        this.selectedTest = null;
       } else {
         this.selectedTech = test;
-        this.selectedTest = null; // Reset the test selection when a new tech is selected
+        this.selectedTest = null;
       }
     },
     handleTestSelect(test) {
