@@ -1,4 +1,5 @@
 import { defineStore } from "pinia";
+import axios from "axios";
 
 export const useTestStore = defineStore("testStore", {
   state: () => ({
@@ -66,51 +67,49 @@ export const useTestStore = defineStore("testStore", {
     },
     async submitCustomTest() {
       if (!this.isFormValid) return;
-
-      const requestData = JSON.stringify({
+      const requestData = {
         action: "test",
         ...Object.fromEntries(
           Object.entries(this.fields).map(([key, field]) => [key, field.value])
         ),
-      });
-
-      const axiosConfig = {
-        headers: {
-          "Content-Type": "application/json",
-        },
       };
-
       try {
-        const response = await this.$axios.post(
-          "api.php",
-          requestData,
-          axiosConfig
-        );
+        const response = await axios.post("/api.php", requestData);
         console.log(response.data);
       } catch (error) {
-        console.error(error);
-        alert("Error: " + error);
+        console.error("Failed to submit custom test:", error);
+        alert("Error submitting test: " + error.message);
       }
     },
     async fetchTests() {
-      this.$axios
-        .get("api.php?action=get_custom_tests")
-        .then((response) => {
-          this.customTests = response.data;
-        })
-        .catch((error) => {
-          console.log(error);
-        });
+      try {
+        const response = await axios.get("/api.php?action=get_custom_tests");
+        this.customTests = response.data;
+        console.log("fetchTests", response.data);
+      } catch (error) {
+        console.error("Failed to fetch tests:", error);
+      }
     },
     async fetchIDs() {
-      this.$axios
-        .get("api.php?action=get_custom_ids")
-        .then((response) => {
-          this.leftColumn = response.data;
-        })
-        .catch((error) => {
-          console.log(error);
-        });
+      try {
+        const response = await axios.get("/api.php?action=get_custom_ids");
+        console.log("fetchIDs", response.data);
+        this.leftColumn = response.data;
+      } catch (error) {
+        console.error("Failed to fetch IDs:", error);
+      }
+    },
+    handleTechSelect(test) {
+      if (this.selectedTech === test) {
+        this.selectedTech = null;
+        this.selectedTest = null; // Ensure that any associated test is deselected
+      } else {
+        this.selectedTech = test;
+        this.selectedTest = null; // Reset the test selection when a new tech is selected
+      }
+    },
+    handleTestSelect(test) {
+      this.selectedTest = this.selectedTest === test ? null : test;
     },
   },
 });
