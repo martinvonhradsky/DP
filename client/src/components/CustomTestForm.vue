@@ -33,7 +33,7 @@
           <div style="height: 80vh; width: inherit; overflow-y: scroll">
             <tbody>
               <tr
-                v-for="tech in leftColumn"
+                v-for="tech in store.leftColumn"
                 :key="tech"
                 @click="handleTechSelect(tech)"
                 :class="{ 'bg-blue-200': selectedTech === tech }"
@@ -93,41 +93,14 @@ export default {
   components: {
     FormCustomTest,
   },
-  setup() {
-    const testStore = useTestStore();
-
-    // Make sure these functions are defined in your store and being returned here
-    const {
-      fields,
-      handleFieldUpdate,
-      submitCustomTest,
-      handleTechSelect,
-      handleTestSelect,
-      fetchIDs,
-      fetchTests,
-      selectedTech,
-      selectedTest,
-      customTests,
-      leftColumn,
-    } = testStore;
-
+  data() {
     return {
-      fields,
-      handleFieldUpdate,
-      submitCustomTest,
-      handleTechSelect,
-      handleTestSelect,
-      fetchIDs,
-      fetchTests,
-      selectedTech,
-      selectedTest,
-      customTests,
-      leftColumn,
+      store: useTestStore(),
     };
   },
   mounted() {
-    this.fetchTests();
-    this.fetchIDs();
+    this.store.fetchTests();
+    this.store.fetchIDs();
   },
 };
 </script>
