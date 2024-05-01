@@ -3,7 +3,12 @@
     <div class="w-1/5 min-w-1/5">
       <FormCustomTest :fields="store.fields" @updateField="handleUpdateField" />
       <div>
-        <button class="btn btn-blue" type="submit" @click="submitCustomTest">
+        <button
+          :disabled="!store.isFormValid"
+          class="btn btn-blue"
+          type="submit"
+          @click="submitCustomTest"
+        >
           Add Custom Test
         </button>
       </div>
@@ -42,8 +47,10 @@
         </div>
 
         <div v-if="store.selectedTech">
-          <div class="table-container2 ps-2">
-            <table class="border-collapse border border-gray-400 min-w-80">
+          <div class="ps-2">
+            <table
+              class="table-container2 border-collapse border border-gray-400 min-w-80 max-w-80"
+            >
               <thead>
                 <tr>
                   <th class="border border-gray-400 px-4 py-2 w-48">Test</th>
@@ -63,7 +70,24 @@
                     "
                     class="border border-gray-400 px-4 py-2"
                   >
-                    {{ test.name }}
+                    <div class="flex">
+                      {{ test.name }}
+
+                      <div class="flex">
+                        <button
+                          @click.stop="editTest(test)"
+                          class="edit-button p-2"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          @click.stop="deleteTest(test)"
+                          class="delete-button p-2"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
                   </td>
                 </tr>
               </tbody>
@@ -114,7 +138,7 @@ export default {
 
 .table-container2 {
   overflow-y: auto; /* Enable vertical scrolling */
-  max-height: 48vh; /* Set maximum height */
+  max-height: 80vh; /* Set maximum height */
 }
 
 .spinner {
