@@ -3,7 +3,7 @@ header("Access-Control-Allow-Origin: *");
 
 // Define constants for configuration parameters
 define('ANSIBLE_PLAYBOOK_PATH', '../engine/');
-define('ANSIBLE_HOSTS_PATH', '/etc/ansible/hosts');
+define('ANSIBLE_HOSTS_DIR', '/etc/ansible/secmon_hosts');
 
 require 'api.php';
 
@@ -34,11 +34,20 @@ function setAnsibleHosts($alias) {
   if ($pwd != "") {
     $hostsContent .= " ansible_ssh_pass=" . $pwd;
   }
+  $hostsContent .= " ansible_sudo_pass=" . $pwd;
+
   $hostsContent .= "\n";
   
+  if (!is_dir(ANSIBLE_HOSTS_DIR)) {
+    if (!mkdir(ANSIBLE_HOSTS_DIR, 0755)) {
+      http_response_code(500);
+      echo "Error creating directory " . ANSIBLE_HOSTS_DIR;
+      return 1;
+    }
+  }
+
   // Write the content to the hosts file
-  echo $hostsContent;
-  file_put_contents(ANSIBLE_HOSTS_PATH, $hostsContent);
+  file_put_contents(ANSIBLE_HOSTS_DIR . '/' . $alias, $hostsContent);
   return 0;
 }
 
@@ -47,12 +56,9 @@ function setupTarget($alias) {
   if (setAnsibleHosts($alias) != 0) {
     return;
   }
-  // Concurrent requests will be handled by different PHP processes so the environment
-  // variables will not get overwritten.
-  exec('echo popici > output.txt');
 
   // Run the Ansible playbook for target setup. See: https://stackoverflow.com/a/29456196/4500196 
-  $command = "ansible-playbook --limit=$alias ".ANSIBLE_PLAYBOOK_PATH."target_setup.yaml";
+  $command = "ansible-playbook -i " . ANSIBLE_HOSTS_DIR . " --limit=$alias ".ANSIBLE_PLAYBOOK_PATH."target_setup.yaml";
   executeAnsible($command, "");
 }
 

@@ -58,7 +58,7 @@
                     @click="runSetup()"
                     >Run setup
                 </button>      
-                <target-form-delete :selected-target="selectedTarget.alias"></target-form-delete>
+                <target-form-delete @targetDeleted="fetchTargets()" :selected-target="selectedTarget.alias"></target-form-delete>
             </div>
             <div v-else class="flex justify-center items-center flex-col space-y-4">
               <button 

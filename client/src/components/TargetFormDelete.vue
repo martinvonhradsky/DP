@@ -51,6 +51,7 @@ export default {
           console.log(response.data);
           this.notificationMessage = "Deletion successful.";
           this.notificationClass = "bg-green-500 text-white";
+          this.$emit("targetDeleted")
         })
         .catch((error) => {
           console.log(error);

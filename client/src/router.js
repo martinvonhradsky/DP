@@ -22,6 +22,11 @@ const routes = [
     name: "ManageTarget",
   },
   {
+    path: "/add--custom-test",
+    component: () => import("./components/AddCustomTest.vue"),
+    name: "AddCustomTest",
+  },
+  {
     path: "/test",
     component: () => import("./components/TestPage.vue"),
     name: "ManageCustomTest",
