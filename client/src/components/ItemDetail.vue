@@ -29,7 +29,6 @@
             class="w-48 h-12 border-solid border border-black bg-gray-400 px-4 py-2 rounded-md shadow-md focus:shadow-md mb-10"
             v-model="selectedTarget"
             id="aliasSelect"
-            @click="fetchTargets"
             @change="handleTargetSelect(selectedTarget)"
           >
             <option value="" disabled selected>Select a target</option>
@@ -42,16 +41,7 @@
             </option>
           </select>
         </div>
-        
-        <TargetModal
-          :show="showCustomTestModal"
-          @toggleModal="toggleCustomTestModal"
-        >
-          
-          <template #body>
-            <CustomTestForm />
-          </template>
-        </TargetModal>
+
         <button
           class="w-48 h-12 border-solid border border-black px-4 py-2 rounded-md shadow-md focus:shadow-md mb-10"
           @click="executeTest(testId, selectedTarget, testArguments)"
@@ -92,7 +82,6 @@
 </template>
 
 <script>
-import CustomTestForm from "./CustomTestForm.vue";
 import TechDetail from "./TechDetail.vue";
 import NavbarVue from './PageNavbar.vue';
 
@@ -101,7 +90,6 @@ import { RouterLink } from "vue-router";
 export default {
   name: "ItemDetail",
   components: {
-    CustomTestForm,
     RouterLink,
     TechDetail,
     NavbarVue
@@ -136,6 +124,7 @@ export default {
   },
   mounted() {
     this.fetchData();
+    this.fetchTargets();
   },
   methods: {
     createTestId(technique_id, test_number) {
@@ -159,7 +148,7 @@ export default {
             (item) => item.id === this.selectedTest.technique_id
           );
           if (selectedItem) {
-            selectedItem.executeOutput = response.data; // Update executeOutput for the selected item
+            selectedItem.executeOutput = 'Executing...\n' + response.data; // Update executeOutput for the selected item
             this.executeOutput = selectedItem.executeOutput;
             this.testExecuted = true;
             this.updateExecuteOutput();
