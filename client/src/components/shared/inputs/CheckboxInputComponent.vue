@@ -21,7 +21,7 @@ export default {
     const store = useTestStore();
 
     function updateValue(value) {
-      store.updateField({ field: props.field.name, value });
+      store.handleFieldUpdate({ field: props.field.name, value });
     }
 
     return { updateValue };

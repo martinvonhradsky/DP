@@ -30,13 +30,11 @@ export default {
     const store = useTestStore();
 
     const textInputs = computed(() => {
-      return Object.keys(store.$state)
-        .filter((key) => {
-          return key !== "local" && key !== "args";
-        })
+      return Object.keys(store.fields)
+        .filter((key) => key !== "local" && key !== "args") // Assuming these are within fields and are not checkboxes
         .map((key) => ({
           name: key,
-          value: store[key],
+          value: store.fields[key].value, // Access the nested value
           type: "text",
           placeholder: `Enter ${key}`,
         }));
@@ -45,15 +43,14 @@ export default {
     const checkboxInputs = computed(() => {
       return ["local", "args"].map((key) => ({
         name: key,
-        value: store[key],
+        value: store.fields[key].value, // Ensure these keys are also under fields if they are checkboxes
         type: "checkbox",
       }));
     });
 
-    const handleUpdateField = ({ fieldName, value }) => {
-      store.updateField({ field: fieldName, value });
+    const handleUpdateField = (fieldName, value) => {
+      store.handleFieldUpdate(fieldName, value); // Adjust to match store method signature
     };
-
     return { textInputs, checkboxInputs, handleUpdateField };
   },
 };
