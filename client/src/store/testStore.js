@@ -58,10 +58,14 @@ export const useTestStore = defineStore("testStore", {
     },
   },
   actions: {
-    handleFieldUpdate(fieldName, value) {
-      this.fields[fieldName].value = value;
+    handleFieldUpdate({ field, value }) {
+      console.log("field", field, "value", value, this.fields);
+      if (this.fields[field]) {
+        this.fields[field].value = value;
+      }
     },
     async submitCustomTest() {
+      console.log("this.isFormValid", this.isFormValid);
       if (!this.isFormValid) return;
 
       const requestData = JSON.stringify({
