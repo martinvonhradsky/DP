@@ -1,84 +1,99 @@
 <template>
-  <div class="flex">
-    <div class="flex-1">
-      <FormCustomTest
-        :fields="fields"
-        :labels="labels"
-        @updateField="handleFieldUpdate"
-      />
-      <div class="flex justify-between">
-        <button class="btn btn-blue" type="submit" @click="submitCustomTest">
+  <div class="flex justify-around">
+    <div class="w-1/5 min-w-1/5">
+      <FormCustomTest :fields="store.fields" @updateField="handleUpdateField" />
+      <div>
+        <button
+          :disabled="!store.isFormValid"
+          class="btn btn-blue"
+          type="submit"
+          @click="submitCustomTest"
+        >
           Add Custom Test
         </button>
       </div>
     </div>
-    <div style="display: flex; flex-direction: row">
-      <div style="flex: 1; overflow: auto">
-        <table
-          class="border-collapse border border-gray-400 w-full"
-          style="
-            table-layout: fixed;
-            width: 200-px;
-            height: 100px;
-            overflow-y: scroll;
-          "
-        >
-          <thead>
-            <tr>
-              <th class="border border-gray-400 px-4 py-2" style="width: 200px">
-                Technic ID
-              </th>
-            </tr>
-          </thead>
-          <div style="height: 80vh; width: inherit; overflow-y: scroll">
-            <tbody>
-              <tr
-                v-for="tech in leftColumn"
-                :key="tech"
-                @click="handleTechSelect(tech)"
-                :class="{ 'bg-blue-200': selectedTech === tech }"
-              >
-                <td
-                  class="w-fuborder border-gray-400 px-4 py-2"
-                  style="width: 200px"
-                >
-                  {{ tech.technique_id }}
-                </td>
-              </tr>
-            </tbody>
-          </div>
-        </table>
-      </div>
 
-      <div style="flex: 1; overflow: auto">
-        <table
-          class="border-collapse border border-gray-400 w-full"
-          style="table-layout: fixed"
-        >
-          <thead>
-            <tr>
-              <th class="border border-gray-400 px-4 py-2">Test</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="test in customTests"
-              :key="test"
-              @click="handleTestSelect(test)"
-              :class="{ 'bg-blue-200': selectedTest === test }"
+    <div class="pt-32 ms-2 w-3/5 min-w-3/5">
+      <div class="flex justify-start">
+        <div v-if="store.leftColumn">
+          <div class="table-container">
+            <table class="border-collapse border border-gray-400 h-max-content">
+              <div>
+                <h4
+                  class="border border-gray-400 px-4 py-2"
+                  v-if="leftColumn !== null"
+                >
+                  Technic ID
+                </h4>
+              </div>
+              <tbody>
+                <tr
+                  v-for="tech in store.leftColumn"
+                  :key="tech"
+                  @click="handleTechSelect(tech)"
+                  :class="{ 'bg-blue-200': store.selectedTech === tech }"
+                >
+                  <td
+                    class="border border-gray-400 px-4 py-2"
+                    style="width: 200px"
+                  >
+                    {{ tech.technique_id }}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div v-if="store.selectedTech">
+          <div class="ps-2">
+            <table
+              class="table-container2 border-collapse border border-gray-400 min-w-80 max-w-80"
             >
-              <td
-                v-if="
-                  selectedTech &&
-                  selectedTech.technique_id === test.technique_id
-                "
-                class="border border-gray-400 px-4 py-2"
-              >
-                {{ test.name }}
-              </td>
-            </tr>
-          </tbody>
-        </table>
+              <thead>
+                <tr>
+                  <th class="border border-gray-400 px-4 py-2 w-48">Test</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="test in store.customTests"
+                  :key="test"
+                  @click="handleTestSelect(test)"
+                  :class="{ 'bg-blue-200': store.selectedTest === test }"
+                >
+                  <td
+                    v-if="
+                      store.selectedTech &&
+                      store.selectedTech.technique_id === test.technique_id
+                    "
+                    class="border border-gray-400 px-4 py-2"
+                  >
+                    <div class="flex">
+                      {{ test.name }}
+
+                      <div class="flex">
+                        <button
+                          @click.stop="editTest(test)"
+                          class="edit-button p-2"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          @click.stop="deleteTest(test)"
+                          class="delete-button p-2"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -86,162 +101,46 @@
 
 <script>
 import FormCustomTest from "./shared/FormCustomTest.vue";
+import { useTestStore } from "../store/testStore";
 
 export default {
   name: "CustomTestForm",
   components: {
     FormCustomTest,
   },
-  props: {
-    selectedTarget: {
-      type: String,
-      required: true,
-    },
-  },
   data() {
     return {
-      labels: {
-        id: "ID of Technic",
-        name: "Test Name to be displayed in application",
-        desc: "Description",
-        filename: "Name of entrypoint - file to be executed",
-        executable: "Executable Path",
-        local: "Execute Test on Target Device",
-        args: "Additional Arguments",
-      },
-      fields: {
-        id: {
-          value: "",
-          tooltip: "Enter the ID of the target",
-          placeholder: "Enter ID",
-        },
-        name: {
-          value: "",
-          tooltip: "Enter the name of the test",
-          placeholder: "Enter test name",
-        },
-        desc: {
-          value: "",
-          tooltip: "Enter a description for the test",
-          placeholder: "Enter description",
-        },
-        filename: {
-          value: "",
-          tooltip: "Enter the filename of the test",
-          placeholder: "Enter filename",
-        },
-        executable: {
-          value: "",
-          tooltip: "Enter the path to the executable",
-          placeholder: "Enter executable path",
-        },
-        local: {
-          value: false,
-          tooltip: "Check if the test is to be executed locally",
-        },
-        args: {
-          value: "",
-          tooltip: "Enter any additional arguments for the test",
-          placeholder: "Enter additional arguments",
-        },
-      },
-      customTests: null,
-      selectedTest: null,
-      selectedTech: null,
-      leftColumn: null,
-      isLoading: false,
+      store: useTestStore(),
     };
   },
-  computed: {
-    isFormValid() {
-      console.log("isFormValid");
-      const nonCheckboxFields = Object.values(this.fields).filter(
-        (field) => typeof field.value !== "boolean"
-      );
-      return nonCheckboxFields.every((field) => field.value);
-    },
-    getFieldValue(fieldName) {
-      return fieldName.value;
-      //return this.selectedTest ? this.selectedTest[fieldName] : '';
-    },
-  },
-  mounted() {
-    this.fetchTests();
-    this.fetchIDs();
-  },
   methods: {
-    handleFieldUpdate({ fieldName, value }) {
-      this.fields[fieldName].value = value;
+    handleUpdateField(fieldName, value) {
+      this.store.handleFieldUpdate({ field: fieldName, value });
     },
-    async submitCustomTest() {
-      console.log("clicked");
-      if (!this.isFormValid) return;
-
-      const requestData = JSON.stringify({
-        action: "test",
-        ...Object.fromEntries(
-          Object.entries(this.fields).map(([key, field]) => [key, field.value])
-        ),
-      });
-
-      const axiosConfig = {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      };
-
-      try {
-        const response = await this.$axios.post(
-          "api.php",
-          requestData,
-          axiosConfig
-        );
-        console.log(response.data);
-      } catch (error) {
-        console.error(error);
-        alert("Error: " + error);
-      }
-    },
-    fetchTests() {
-      this.$axios
-        .get("api.php?action=get_custom_tests")
-        .then((response) => {
-          this.customTests = response.data;
-        })
-        .catch((error) => {
-          console.log(error);
-        });
-    },
-    fetchIDs() {
-      this.$axios
-        .get("api.php?action=get_custom_ids")
-        .then((response) => {
-          this.leftColumn = response.data;
-        })
-        .catch((error) => {
-          console.log(error);
-        });
-    },
-    handleTechSelect(test) {
-      if (this.selectedTech === test) {
-        this.selectedTech = null;
-      } else {
-        this.selectedTech = test;
-        this.selectedTest = null;
-      }
+    handleTechSelect(tech) {
+      this.store.handleTechSelect(tech);
     },
     handleTestSelect(test) {
-      if (this.selectedTest === test) {
-        this.selectedTest = null;
-      } else {
-        this.selectedTest = test;
-      }
+      this.store.handleTestSelect(test);
+    },
+    submitCustomTest() {
+      this.store.submitCustomTest();
     },
   },
 };
 </script>
 
 <style scoped>
+.table-container {
+  overflow-y: auto; /* Enable vertical scrolling */
+  max-height: 48vh; /* Set maximum height */
+}
+
+.table-container2 {
+  overflow-y: auto; /* Enable vertical scrolling */
+  max-height: 80vh; /* Set maximum height */
+}
+
 .spinner {
   border-top: 2px solid #666;
   border-right: 2px solid #666;
