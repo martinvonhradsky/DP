@@ -4,14 +4,14 @@
     <div class="w-full flex justify-center p-5"> 
     </div>
     <div class="container px-10 flex w-full mb-5">
-      <div v-if="items" class="flex flex-col mr-5">
+      <div v-if="techniques" class="flex flex-col mr-5">
         <TechDetail
-          v-for="item in items"
-          :key="item.id"
-          :item="item"
-          :execute-output="item.executeOutput"
+          v-for="tech in techniques"
+          :key="tech.id"
+          :item="tech"
+          :selectedTest="selectedTest"
+          :outputFileId="outputFileId(tech.id)"
           @test-selected="handleTestSelect"
-          @test-arguments="handleArguments"
         />
       </div>
       <!-- Left -->
@@ -29,13 +29,12 @@
             class="w-48 h-12 border-solid border border-black bg-gray-400 px-4 py-2 rounded-md shadow-md focus:shadow-md mb-10"
             v-model="selectedTarget"
             id="aliasSelect"
-            @change="handleTargetSelect(selectedTarget)"
           >
             <option value="" disabled selected>Select a target</option>
             <option
               v-for="target in targets"
-              :value="target.alias"
-              :key="target.id"
+              :value="target"
+              :key="target.alias"
             >
               {{ target.alias }}
             </option>
@@ -44,11 +43,11 @@
 
         <button
           class="w-48 h-12 border-solid border border-black px-4 py-2 rounded-md shadow-md focus:shadow-md mb-10"
-          @click="executeTest(testId, selectedTarget, testArguments)"
+          @click="executeTest()"
           :title="
             !selectedTarget || !selectedTest
               ? 'Select a target and a test first.'
-              : missingTooltip
+              : ''
           "
           :disabled="selectedTest ? (selectedTest.local_execution ? !selectedTarget : false) : true "
           
@@ -96,99 +95,95 @@ export default {
   },
   data() {
     return {
-      items: [],
-      isLoading: false,
-      executeOutput: null,
-      missingTooltip: "Default Tooltip",
-      selectedTab: 0, // Default to the first tab
-      selectedTarget: null,
-      selectedTest: null,
-      setupOutput: "",
-      showCustomTestModal: false,
-      tabs: ["Add", "Edit", "Delete"], // Add more tab titles as needed
+      // Fetched data
+      techniques: [],
       targets: [],
+
+      // Selections
+      selectedTest: null,
+      selectedTarget: null,
+
+      isLoading: false,
       testExecuted: false,
       testDetected: false,
-      testId: null,
-      testArguments: 'picavoda',
     };
   },
   computed: {
-    filteredTabs() {
-      if (this.selectedTarget) {
-        return this.tabs;
-      } else {
-        return this.tabs.filter((tab) => tab !== "Edit" && tab !== "Delete");
+    outputFileId() {
+      return (techId) => {
+        if (!this.selectedTest || !this.selectedTarget || this.selectedTest.technique_id !== techId) {
+          return null;
+        }
+        return this.selectedTest.executions[this.selectedTarget.alias] ?? null;
       }
-    },
+    }
   },
   mounted() {
-    this.fetchData();
+    this.fetchTechniquesAndTests();
     this.fetchTargets();
   },
   methods: {
-    createTestId(technique_id, test_number) {
-      this.testId = `${technique_id}-${test_number}`;
-    },
-    executeTest(testId, alias, args) {
-      console.log("ITEM DETAIL executeTest(testId): "+testId);      
-      console.log("ITEM DETAIL executeTest(args): "+args);
+    executeTest() {
       this.isLoading = true;
-      this.createTestId(
-        this.selectedTest.technique_id,
-        this.selectedTest.test_number
-      );
+      const testId = `${this.selectedTest.technique_id}-${this.selectedTest.test_number}`;
+      const args = this.selectedTest.argumentsValue;
+      const targetAlias = this.selectedTarget.alias;
+
+      console.log(`Execute test: ${targetAlias} ${testId} ${args}`);      
       this.$axios
         .get(
-          `run-ansible.php?action=executeTest&id=${testId}&alias=${alias}&args=${args}`,
+          `run-ansible.php?action=executeTest&id=${testId}&alias=${targetAlias}&args=${args}`,
           true
         )
         .then((response) => {
-          const selectedItem = this.items.find(
-            (item) => item.id === this.selectedTest.technique_id
-          );
-          if (selectedItem) {
-            selectedItem.executeOutput = 'Executing...\n' + response.data; // Update executeOutput for the selected item
-            this.executeOutput = selectedItem.executeOutput;
-            this.testExecuted = true;
-            this.updateExecuteOutput();
-          }
+          this.selectedTest.executions[targetAlias] = response.data.output_file_id;
         })
         .catch((error) => {
           console.log(error);
         })
         .finally(() => {
           this.isLoading = false;
-          this.selectedTarget = null;
         });
     },
-    fetchData() {
+    fetchTests(tech) {
+      this.$axios
+        .get(`api.php?action=test_by_id&id=${tech.id}`)
+        .then((response) => {
+          if (!response || !response.data || !(response.data instanceof Array) || response.data.length == 0 || response.data[0].Error) {
+            tech.tests = [];
+          } else {
+            tech.tests = response.data.map((t) => {
+              t.argumentsValue = "";
+              // Format:
+              // {
+              //   targetAlias: outputFileId,
+              // }
+              // Note: Only one execution per target is stored.
+              t.executions = {};
+              return t;
+            })
+          }
+        })
+        .catch((error) => {
+          tech.tests = [];
+          console.log(error);
+        });
+    },
+    fetchTechniquesAndTests() {
       const id = this.$route.params.id;
       this.$axios
         .get(`api.php?action=specific&id=${id}`)
         .then((response) => {
-          this.item = response.data[0];
-          this.items = Array.from(
+          console.log(response.data);
+          this.techniques = Array.from(
             new Set(response.data.map((item) => item.id))
           ).map((id) => {
             const item = response.data.find((item) => item.id === id);
-            item.executeOutput = null; // Initialize executeOutput for each item
             return item;
           });
-        })
-        .catch((error) => {
-          console.log(error);
-        });
-    },
-    fetchTargetDetails(alias) {
-      if (!this.selectedTarget) {
-        return;
-      }
-      const apiUrl = `api.php?action=target_detail&alias=${alias}`;
-      this.$axios
-        .get(apiUrl)
-        .then((response) => {
-          this.targetDetails = response.data;
+          for (let tech of this.techniques) {
+            this.fetchTests(tech);
+          }
         })
         .catch((error) => {
           console.log(error);
@@ -207,27 +202,12 @@ export default {
     handleTargetSelect(selectedTarget) {
       // Update the selectedTarget data property with the selected value
       this.selectedTarget = selectedTarget;
-      if (this.selectedTest) {
-        this.testExecuted = false;
-        this.createTestId(
-          this.selectedTest.technique_id,
-          this.selectedTest.test_number
-        );
-      }
     },
     handleTestSelect(test) {
       this.selectedTest = test;
-      this.createTestId(
-          this.selectedTest.technique_id,
-          this.selectedTest.test_number
-        );
-      this.testExecuted = false;
-    },
-    handleArguments(args){
-      this.testArguments = args;
     },
     saveTestResult() {
-      const selectedItem = this.items.find(
+      const selectedItem = this.techniques.find(
                 (item) => item.id === this.selectedTest.technique_id
               );
       const requestData = {
@@ -247,41 +227,6 @@ export default {
         .catch((error) => {
           console.log(error);
         });
-    },
-    toggleCustomTestModal() {
-      this.showCustomTestModal = !this.showCustomTestModal;
-    },
-    updateExecuteOutput() {
-      if (this.testExecuted) {
-        const intervalId = setInterval(() => {
-          this.$axios
-            .get("api.php?action=result")
-            .then((response) => {
-              const selectedItem = this.items.find(
-                (item) => item.id === this.selectedTest.technique_id
-              );
-              if (selectedItem) {
-                selectedItem.executeOutput = response.data.output;
-              }
-              if (response.data.end) {
-                clearInterval(intervalId); // Stop the interval when response.data.end is true
-              }
-            })
-            .catch((error) => {
-              console.log(error);
-            });
-        }, 2000);
-      }
-    },
-  },
-  watch: {
-    selectedTest(newSelectedTest) {
-      if (newSelectedTest && this.selectedTarget) {
-        this.createTestId(
-          newSelectedTest.technique_id,
-          newSelectedTest.test_number,
-        );
-      }
     },
   },
 };

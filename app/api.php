@@ -5,6 +5,8 @@ header("Access-Control-Allow-Headers: Content-Type");
 
 require_once('database.php');
 
+define('ANSIBLE_OUTPUT_PATH', '/tmp/ansible_run');
+
 function isID($id) {
   // Check if the ID matches the regular expression /T[0-9]+\.[0-9]+/i
   if (preg_match('/T[0-9]+\.[0-9]+/i', $id)) {
@@ -304,21 +306,18 @@ function insertTest($num, $filename, $executable, $description, $local, $name, $
   }
 }
 
-function getAnsibleOutput() {
+function getAnsibleOutput($file_id) {
+  $file_path = ANSIBLE_OUTPUT_PATH . $file_id;
   // Check if the output file exists
-  if (!file_exists('output.txt')) {
+  if (!file_exists($file_path)) {
     return json_encode(['end' => false, 'output' => 'Output file not found.']);
   }
   
   // Read the output file contents
-  $output = file_get_contents('output.txt');
+  $output = file_get_contents($file_path);
   
   // Check if the output contains the end marker
   $end = strpos($output, 'PLAY RECAP') !== false;
-  if($end){
-    // Remove Ansible hosts content
-    //exec('echo "" > /etc/ansible/hosts');
-  }
   // Construct the response object
   $response = ['end' => $end, 'output' => $output];
   
@@ -417,6 +416,7 @@ if (isset($_GET['action'])) {
           $result = executeQuery($query);
           echo $result;
         } else {
+          http_response_code(404);
           echo "ID: " . $id ." is not valid ID";
         }
       }
@@ -451,7 +451,13 @@ if (isset($_GET['action'])) {
       echo getenv('WEB_PUBLIC_KEY');
       break;
     case 'result':
-      echo getAnsibleOutput();
+      $id = $_GET['outputFileId'];
+      if (!isset($id)) {
+        http_response_code(400);
+        echo '`outputFileId` parameter must be set';
+      } else {
+        echo getAnsibleOutput($id);
+      }
       break;
     case 'get_custom_tests':
       echo executeQuery("SELECT * FROM tests;");

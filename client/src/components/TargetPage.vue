@@ -16,7 +16,7 @@
 
             <div>
                 <target-form-edit @newTargetAdded="fetchTargets()" ref="refEditForm" :is-new="selectedTarget == null" :selected-target="targetDetails"></target-form-edit>
-                <p style="font-family: 'Courier New', Courier, monospace;" v-html="formatOutput"></p>  
+                <output-box :outputFileId="selectedTarget != null ? selectedTarget.outputFileId : null" />  
             </div>
         </div>
         <!-- Table with Targets -->
@@ -82,30 +82,22 @@
   import NavbarVue from "./PageNavbar.vue";
   import TargetFormDelete from './TargetFormDelete.vue';
   import TargetFormEdit from "./TargetFormEdit.vue";
+  import OutputBox from "./OutputBox.vue";
 
   export default {
     name: "TargetPage",
     components: {
       NavbarVue,
       TargetFormEdit,
-      TargetFormDelete
+      TargetFormDelete,
+      OutputBox,
     },
     data() {
       return {
         selectedTarget: null,
-        showTargetModal: false,
-        toggleModal: true,
         targets: [],
         targetDetails: [],
-        isLoading: false,
-        setupOutput: "",
       };
-    },
-    computed:{
-      formatOutput(){
-        return this.setupOutput ? this.setupOutput.replace(/(\n|\\n)/g, '<br>') : '';
-      }
-      
     },
     methods: {
         callTargetEdit() {
@@ -134,7 +126,18 @@
       this.$axios
         .get("api.php?action=targets")
         .then((response) => {
-          this.targets = response.data;
+          const newTargets = response.data;
+          // Persist output over refetches of data.
+          for (let j = 0; j < newTargets.length; ++j) {
+            newTargets[j].outputFileId = null;
+
+            for (let i = 0; i < this.targets.length; ++i) {
+              if (this.target[i].alias == newTargets[j].alias) {
+                newTargets[j].outputFileId = this.target[i].outputFileId;
+              }
+            }
+          }
+          this.targets = newTargets;
           // Represents "New Target".
           this.targets.push(null);
         })
@@ -147,12 +150,10 @@
       this.$axios
         .get(apiUrl)
         .then((response) => {
-          console.log(response.data);
-          this.setupOutput = response.data;
+          console.log(response.data.output_file_id);
+          this.selectedTarget.outputFileId = response.data.output_file_id;
           this.notificationMessage = "Setup started successfully.";
           this.notificationClass = "bg-green-500 text-white";
-          this.isLoading = true;
-          this.updateSetupOutput();
         })
         .catch((error) => {
           console.log(error);
@@ -163,25 +164,6 @@
           
         });
         this.$emit("run-setup");
-    },
-    updateSetupOutput() {
-      if (this.isLoading) {
-        const intervalId = setInterval(() => {
-          this.$axios
-            .get("api.php?action=result")
-            .then((response) => {              
-              this.setupOutput = String(response.data.output);
-              
-              if (response.data.end) {
-                clearInterval(intervalId); // Stop the interval when response.data.end is true
-              }
-            })
-            .catch((error) => {
-              console.log(error);
-            });
-        }, 2000);
-        this.isLoading = false;
-      }
     },
     handleTargetSelect(target) {
         console.log(target);

@@ -59,7 +59,8 @@ function setupTarget($alias) {
 
   // Run the Ansible playbook for target setup. See: https://stackoverflow.com/a/29456196/4500196 
   $command = "ansible-playbook -i " . ANSIBLE_HOSTS_DIR . " --limit=$alias ".ANSIBLE_PLAYBOOK_PATH."target_setup.yaml";
-  executeAnsible($command, "");
+  $output_file_id = executeAnsible($command, "");
+  echo json_encode(['output_file_id' => $output_file_id]);;
 }
 
 function executeAnsibleTest($alias, $test, $args) {
@@ -91,25 +92,22 @@ function executeAnsibleTest($alias, $test, $args) {
   if($result[0]['executable'] !== "Invoke atomic"){
     
     if($result[0]['local_execution']){
-      echo "local exe";
 
       if($alias == "null") {
         // Set the HTTP response code to 400
         http_response_code(400);
         // Return the error message
         echo "Test execution failed. No target device specified for local execution.";
-
+        return;
       }
 
       // local execution that means its executed locally on remote machine
-      $command = "ansible-playbook --limit=$alias " . ANSIBLE_PLAYBOOK_PATH . "execute_custom_test.yaml --extra-vars '{\"executable\":\"{$result[0]['executable']}\", \"test_file\":\"{$result[0]['file_name']}\",\"directory\":\"./customs/{$test_array[0]}\", \"test_number\":\"{$test_array[1]}\", \"args\":\"{$args}\", \"tech_id\":\"{$test_array[0]}\", \"alias\":\"{$alias}\"}'";
+      $command = "ansible-playbook -i " . ANSIBLE_HOSTS_DIR . " --limit=$alias " . ANSIBLE_PLAYBOOK_PATH . "execute_custom_test.yaml --extra-vars '{\"executable\":\"{$result[0]['executable']}\", \"test_file\":\"{$result[0]['file_name']}\",\"directory\":\"./customs/{$test_array[0]}\", \"test_number\":\"{$test_array[1]}\", \"args\":\"{$args}\", \"tech_id\":\"{$test_array[0]}\", \"alias\":\"{$alias}\"}'";
         
       
     }else{
-      echo "remote exe";
       // remote execution that means its executed from ansible server to remote machine
-      $command = "ansible-playbook " . ANSIBLE_PLAYBOOK_PATH . "execute_custom_test_remote.yaml --extra-vars '{\"executable\":\"{$result[0]['executable']}\", \"test_file\":\"{$result[0]['file_name']}\", \"test_number\":\"{$test_array[1]}\", \"args\":\"{$args}\", \"tech_id\":\"{$test_array[0]}\", \"local_execution\":false}'";
-      echo $command;            
+      $command = "ansible-playbook -i " . ANSIBLE_HOSTS_DIR . " --limit=$alias " . ANSIBLE_PLAYBOOK_PATH . "execute_custom_test_remote.yaml --extra-vars '{\"executable\":\"{$result[0]['executable']}\", \"test_file\":\"{$result[0]['file_name']}\", \"test_number\":\"{$test_array[1]}\", \"args\":\"{$args}\", \"tech_id\":\"{$test_array[0]}\", \"local_execution\":false}'";
     }
     
     /*
@@ -122,10 +120,11 @@ function executeAnsibleTest($alias, $test, $args) {
 
   */}else{
     // Run the Ansible playbook for InvokeAtomic for test execution with the specified test ID
-    $command = "ansible-playbook --limit=$alias ".ANSIBLE_PLAYBOOK_PATH."execute_test.yaml --extra-vars '{\"test\":\"".$test."\"}'";
+    $command = "ansible-playbook -i " . ANSIBLE_HOSTS_DIR . " --limit=$alias ".ANSIBLE_PLAYBOOK_PATH."execute_test.yaml --extra-vars '{\"test\":\"".$test."\"}'";
   }
-  
-  executeAnsible($command, $metadata);
+
+  $output_file_id = executeAnsible($command, $metadata);
+  echo json_encode(['output_file_id' => $output_file_id]);;
 }
 
 /*
@@ -148,26 +147,30 @@ function executeAnsible($command){
 }
 */
 
+// Returns file_id of the output file.
 function executeAnsible($command, $metadata) {
-  // Check if the output.txt file exists, and delete it if it does
-  if (file_exists('output.txt')) {
-    unlink('output.txt');
+  $file_id = uniqid();
+  $file_path = ANSIBLE_OUTPUT_PATH . $file_id;
+
+  // Check if the path exists, and delete it if it does
+  if (file_exists($file_path)) {
+    unlink($file_path);
   }
   
-  // Create the output.txt file and write the $metadata variable to it
-  $file = fopen('output.txt', 'w');
+  // Create the output file and write the $metadata variable to it
+  $file = fopen($file_path, 'w');
   fwrite($file, json_encode($metadata));
   fclose($file);
   
-  // Append the [start] string to the output.txt file
-  $file = fopen('output.txt', 'a');
+  // Append the [start] string to the output file
+  $file = fopen($file_path, 'a');
   fwrite($file, "[start]\n");
   fclose($file);
   
   // Open a process to execute the command and append its output to the output.txt file
-  $command .= " >> output.txt 2>&1 &";
+  $command .= " >> " . $file_path . " 2>&1 &";
   exec($command);
-
+  return $file_id;
 }
 
 
