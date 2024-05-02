@@ -21,13 +21,14 @@ Spustenie testu s argumentami:
 
 
 TODO:
-  - output.txt pleasure
   - pridat paralelizmus na requesty
-  - podpora pre sudo aj cez ssh kluce
+  - fix history saving
 
 Qs:
-  - Platform in target?
+  - v run-ansible   if($alias !== "null"){?
 
 Done:
   - fix: ansible/hosts sa vymaze po kazdom spusteni
   - docker test target setup for ansible
+  - podpora pre sudo aj cez ssh kluce
+  - output.txt pleasure
