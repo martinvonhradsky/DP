@@ -15,7 +15,7 @@
         />
       </div>
       <!-- Left -->
-      <div class="w-2/6 h-3/6 flex flex-col items-center justify-between">
+      <div class="w-2/6 h-3/6 flex flex-col items-center justify-between" style="position: sticky; top: 15px;">
         
         <RouterLink
           :to="{ name: 'HistoryPage', params: { id: $route.params.id } }"
@@ -42,22 +42,16 @@
         </div>
 
         <button
-          class="w-48 h-12 border-solid border border-black px-4 py-2 rounded-md shadow-md focus:shadow-md mb-10"
+          class="w-48 h-12 border-solid border border-black px-4 py-2 rounded-md shadow-md focus:shadow-md mb-10 disabled:opacity-50 disabled:bg-gray-400"
           @click="executeTest()"
           :title="
             !selectedTarget || !selectedTest
               ? 'Select a target and a test first.'
               : ''
           "
-          :disabled="selectedTest ? (selectedTest.local_execution ? !selectedTarget : false) : true "
-          
+          :disabled="isLoading || (selectedTest ? (selectedTest.local_execution ? !selectedTarget : false) : true) "
         >
-          <span v-if="!isLoading">Execute Test</span>
-          <div v-else>
-            <div
-              class="flex w-full justify-center items-center spinner inline-block"
-            ></div>
-          </div>
+          Execute Test
         </button>
         <button
           v-if="testExecuted"
@@ -194,6 +188,8 @@ export default {
         .get("api.php?action=targets")
         .then((response) => {
           this.targets = response.data;
+          // Make the first target the selected one.
+          this.selectedTarget = (this.targets.length > 0 ? this.targets[0] : null);
         })
         .catch((error) => {
           console.log(error);
