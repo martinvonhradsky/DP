@@ -1,9 +1,14 @@
 import { defineStore } from "pinia";
 import axios from "axios";
 
-export const useTestStore = defineStore("testStore", {
+export const useAddCustomTestStore = defineStore("addCustomTestStore", {
   state: () => ({
     fields: {
+      url: {
+        value: "",
+        tooltip: "Enter the URL of the target",
+        placeholder: "Enter URL",
+      },
       technique_id: {
         value: "",
         tooltip: "Enter the ID of the target",
@@ -59,40 +64,22 @@ export const useTestStore = defineStore("testStore", {
         this.fields[field].value = value;
       }
     },
-    async fetchTests() {
+    async submitCustomTest() {
+      console.log("Submit custom test");
+      const requestData = {
+        action: "test",
+        ...Object.fromEntries(
+          Object.entries(this.fields).map(([key, field]) => [key, field.value])
+        ),
+      };
       try {
-        const response = await axios.get("/api.php?action=get_custom_tests");
-        this.customTests = response.data;
+        console.log("Submit after requestData", requestData);
+        const response = await axios.post("/api.php", requestData);
+        console.log(response.data);
       } catch (error) {
-        console.error("Failed to fetch tests:", error);
+        console.error("Failed to submit custom test:", error);
+        alert("Error submitting test: " + error.message);
       }
-    },
-    async fetchIDs() {
-      try {
-        const response = await axios.get("/api.php?action=get_custom_ids");
-        this.leftColumn = response.data;
-      } catch (error) {
-        console.error("Failed to fetch IDs:", error);
-      }
-    },
-    handleTechSelect(test) {
-      if (this.selectedTech === test) {
-        this.selectedTech = null;
-        this.selectedTest = null;
-      } else {
-        this.selectedTech = test;
-        this.selectedTest = null;
-      }
-    },
-    setSelectedTest(test) {
-      this.selectedTest = this.selectedTest === test ? null : test;
-      this.fields.technique_id.value = test.technique_id || "";
-      this.fields.name.value = test.name || "";
-      this.fields.description.value = test.description || "";
-      this.fields.file_name.value = test.file_name || "";
-      this.fields.executable.value = test.executable || "";
-      this.fields.local_execution.value = test.local_execution || false;
-      this.fields.args.value = test.arguments || false;
     },
   },
 });
