@@ -1,28 +1,42 @@
 <template>
-  <div class="flex w-full justify-center h-100vw align-center">
-    <div class="w-1/5">
-      <FormCustomTest
-        :fields="fields"
-        :labels="labels"
-        @updateField="handleFieldUpdate"
-      />
-      <div class="flex justify-between">
-        <button class="btn btn-blue" type="submit" @click="submitCustomTest">
-          Add Custom Test
-        </button>
+  <div>
+    <NavbarVue />
+    <div class="flex w-full justify-center h-100vw align-center mt-20">
+      <div class="w-1/5">
+        <AddCustomTestForm
+          :fields="fields"
+          :labels="labels"
+          @updateField="handleFieldUpdate"
+        />
+        <div class="flex justify-between">
+          <button
+            class="btn btn-blue"
+            type="submit"
+            @click="submitCustomTest()"
+          >
+            Add Custom Test
+          </button>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import FormCustomTest from "./shared/FormCustomTest.vue";
-import { useTestStore } from "../store/testStore";
+import AddCustomTestForm from "./shared/AddCustomTestForm.vue";
+import NavbarVue from "./PageNavbar.vue";
+import { useAddCustomTestStore } from "../store/addCustomTestStore";
 
 export default {
-  name: "CustomTestForm",
+  name: "AddCustomTest",
   components: {
-    FormCustomTest,
+    AddCustomTestForm,
+    NavbarVue,
+  },
+  data() {
+    return {
+      store: useAddCustomTestStore(),
+    };
   },
   props: {
     selectedTarget: {
@@ -31,23 +45,22 @@ export default {
     },
   },
   setup() {
-    const testStore = useTestStore();
+    const addCustomTestStore = useAddCustomTestStore();
 
     return {
-      fields: testStore.fields,
-      labels: testStore.labels,
-      handleFieldUpdate: testStore.handleFieldUpdate,
-      submitCustomTest: testStore.submitCustomTest,
+      fields: addCustomTestStore.fields,
+      labels: addCustomTestStore.labels,
+      handleFieldUpdate: addCustomTestStore.handleFieldUpdate,
+      submitCustomTest: addCustomTestStore.submitCustomTest,
     };
   },
-
   methods: {
     updateValue(fieldName, value) {
-      this.testStore.handleFieldUpdate(fieldName, value);
+      this.addCustomTestStore.handleFieldUpdate(fieldName, value);
     },
   },
   created() {
-    this.testStore = useTestStore();
+    this.addCustomTestStore = useAddCustomTestStore();
   },
 };
 </script>
@@ -73,3 +86,4 @@ export default {
   }
 }
 </style>
+../store/addCustomTestStore

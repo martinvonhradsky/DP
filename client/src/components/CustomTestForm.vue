@@ -4,12 +4,13 @@
       <FormCustomTest :fields="store.fields" @updateField="handleUpdateField" />
       <div>
         <button
-          :disabled="!store.isFormValid"
-          class="btn btn-blue"
+          v-if="store.selectedTest !== null"
+          class="btn btn-blue bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none disabled:bg-gray-400 disabled:text-gray-700 disabled:cursor-not-allowed disabled:border-gray-700"
           type="submit"
-          @click="submitCustomTest"
+          @click="submitCustomTest(test)"
+          :disabled="!store.isFormValid"
         >
-          Add Custom Test
+          Edit Test
         </button>
       </div>
     </div>
@@ -60,7 +61,6 @@
                 <tr
                   v-for="test in store.customTests"
                   :key="test"
-                  @click="handleTestSelect(test)"
                   :class="{ 'bg-blue-200': store.selectedTest === test }"
                 >
                   <td
@@ -75,13 +75,13 @@
 
                       <div class="flex">
                         <button
-                          @click.stop="editTest(test)"
+                          @click="setSelectedTest(test)"
                           class="edit-button p-2"
                         >
                           Edit
                         </button>
                         <button
-                          @click.stop="deleteTest(test)"
+                          @click.stop="deleteCustomTest(test)"
                           class="delete-button p-2"
                         >
                           Delete
@@ -123,8 +123,14 @@ export default {
     handleTestSelect(test) {
       this.store.handleTestSelect(test);
     },
+    setSelectedTest(test) {
+      this.store.setSelectedTest(test);
+    },
     submitCustomTest() {
       this.store.submitCustomTest();
+    },
+    deleteCustomTest(test) {
+      this.store.deleteCustomTest(test);
     },
   },
 };

@@ -5,7 +5,6 @@
       :key="index"
       :field="input"
       @updateField="handleUpdateField"
-      @hoverField="handleHoverField"
     />
     <CheckboxInputComponent
       v-for="(input, index) in checkboxInputs"
@@ -18,7 +17,7 @@
 
 <script>
 import { computed } from "vue";
-import { useTestStore } from "../../store/testStore.js";
+import { useAddCustomTestStore } from "../../store/addCustomTestStore.js";
 import TextInputComponent from "../shared/inputs/TextInputComponent.vue";
 import CheckboxInputComponent from "../shared/inputs/CheckboxInputComponent.vue";
 
@@ -28,7 +27,7 @@ export default {
     CheckboxInputComponent,
   },
   setup() {
-    const store = useTestStore();
+    const store = useAddCustomTestStore();
 
     const textInputs = computed(() => {
       return Object.keys(store.fields)
@@ -53,14 +52,7 @@ export default {
       store.handleFieldUpdate(fieldName, value);
     };
 
-    const handleHoverField = (fieldName) => {
-      if (fieldName === "technique_id") {
-        store.fetchIDs();
-        store.fetchTests();
-      }
-    };
-
-    return { textInputs, checkboxInputs, handleUpdateField, handleHoverField };
+    return { textInputs, checkboxInputs, handleUpdateField };
   },
 };
 </script>

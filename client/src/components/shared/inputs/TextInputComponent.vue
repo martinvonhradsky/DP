@@ -10,6 +10,7 @@
       :value="field.value"
       @input="updateValue($event.target.value)"
       @mouseover="$emit('hoverField', field.name)"
+      class="w-full"
     />
   </div>
 </template>
@@ -23,7 +24,6 @@ export default {
     const store = useTestStore();
 
     function updateValue(value) {
-      console.log({ field: props.field.name, value });
       store.handleFieldUpdate({ field: props.field.name, value });
     }
 

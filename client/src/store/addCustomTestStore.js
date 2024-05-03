@@ -1,9 +1,14 @@
 import { defineStore } from "pinia";
 import axios from "axios";
 
-export const useTestStore = defineStore("testStore", {
+export const useAddCustomTestStore = defineStore("addCustomTestStore", {
   state: () => ({
     fields: {
+      url: {
+        value: "",
+        tooltip: "Enter the URL of the target",
+        placeholder: "Enter URL",
+      },
       technique_id: {
         value: "",
         tooltip: "Enter the ID of the target",
@@ -75,60 +80,6 @@ export const useTestStore = defineStore("testStore", {
         console.error("Failed to submit custom test:", error);
         alert("Error submitting test: " + error.message);
       }
-    },
-    async fetchTests() {
-      try {
-        const response = await axios.get("/api.php?action=get_custom_tests");
-        this.customTests = response.data;
-      } catch (error) {
-        console.error("Failed to fetch tests:", error);
-      }
-    },
-    async fetchIDs() {
-      try {
-        const response = await axios.get("/api.php?action=get_custom_ids");
-        this.leftColumn = response.data;
-      } catch (error) {
-        console.error("Failed to fetch IDs:", error);
-      }
-    },
-    handleTechSelect(test) {
-      if (this.selectedTech === test) {
-        this.selectedTech = null;
-        this.selectedTest = null;
-      } else {
-        this.selectedTech = test;
-        this.selectedTest = null;
-      }
-    },
-    async deleteCustomTest(test) {
-      const requestData = {
-        action: "test", // Assuming this is static or dynamically determined elsewhere
-        test_number: test.test_number, // This should be passed to the function or derived from the state
-        technique_id: test.technique_id, // Ensure this is the correct ID for deletion
-      };
-
-      try {
-        const response = await axios({
-          method: "delete",
-          url: "http://localhost/app/api.php",
-          data: requestData,
-        });
-        console.log("Delete response:", response.data);
-      } catch (error) {
-        console.error("Failed to delete custom test:", error);
-        alert("Error deleting test: " + error.message);
-      }
-    },
-    setSelectedTest(test) {
-      this.selectedTest = this.selectedTest === test ? null : test;
-      this.fields.technique_id.value = test.technique_id || "";
-      this.fields.name.value = test.name || "";
-      this.fields.description.value = test.description || "";
-      this.fields.file_name.value = test.file_name || "";
-      this.fields.executable.value = test.executable || "";
-      this.fields.local_execution.value = test.local_execution || false;
-      this.fields.args.value = test.arguments || false;
     },
   },
 });
