@@ -59,6 +59,23 @@ export const useTestStore = defineStore("testStore", {
         this.fields[field].value = value;
       }
     },
+    async submitCustomTest() {
+      console.log("Submit custom test");
+      const requestData = {
+        action: "test",
+        ...Object.fromEntries(
+          Object.entries(this.fields).map(([key, field]) => [key, field.value])
+        ),
+      };
+      try {
+        console.log("Submit after requestData", requestData);
+        const response = await axios.post("/api.php", requestData);
+        console.log(response.data);
+      } catch (error) {
+        console.error("Failed to submit custom test:", error);
+        alert("Error submitting test: " + error.message);
+      }
+    },
     async fetchTests() {
       try {
         const response = await axios.get("/api.php?action=get_custom_tests");
@@ -82,6 +99,25 @@ export const useTestStore = defineStore("testStore", {
       } else {
         this.selectedTech = test;
         this.selectedTest = null;
+      }
+    },
+    async deleteCustomTest(test) {
+      const requestData = {
+        action: "test", // Assuming this is static or dynamically determined elsewhere
+        test_number: test.test_number, // This should be passed to the function or derived from the state
+        technique_id: test.technique_id, // Ensure this is the correct ID for deletion
+      };
+
+      try {
+        const response = await axios({
+          method: "delete",
+          url: "http://localhost/app/api.php",
+          data: requestData,
+        });
+        console.log("Delete response:", response.data);
+      } catch (error) {
+        console.error("Failed to delete custom test:", error);
+        alert("Error deleting test: " + error.message);
       }
     },
     setSelectedTest(test) {

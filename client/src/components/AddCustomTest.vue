@@ -9,7 +9,11 @@
           @updateField="handleFieldUpdate"
         />
         <div class="flex justify-between">
-          <button class="btn btn-blue" type="submit" @click="submitCustomTest">
+          <button
+            class="btn btn-blue"
+            type="submit"
+            @click="submitCustomTest()"
+          >
             Add Custom Test
           </button>
         </div>
