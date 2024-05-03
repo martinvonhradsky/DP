@@ -1,15 +1,18 @@
 <template>
-  <div class="flex w-full justify-center h-100vw align-center">
-    <div class="w-1/5">
-      <FormCustomTest
-        :fields="fields"
-        :labels="labels"
-        @updateField="handleFieldUpdate"
-      />
-      <div class="flex justify-between">
-        <button class="btn btn-blue" type="submit" @click="submitCustomTest">
-          Add Custom Test
-        </button>
+  <div>
+    <NavbarVue />
+    <div class="flex w-full justify-center h-100vw align-center mt-20">
+      <div class="w-1/5">
+        <FormCustomTest
+          :fields="fields"
+          :labels="labels"
+          @updateField="handleFieldUpdate"
+        />
+        <div class="flex justify-between">
+          <button class="btn btn-blue" type="submit" @click="submitCustomTest">
+            Add Custom Test
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -17,12 +20,14 @@
 
 <script>
 import FormCustomTest from "./shared/FormCustomTest.vue";
+import NavbarVue from "./PageNavbar.vue";
 import { useTestStore } from "../store/testStore";
 
 export default {
   name: "CustomTestForm",
   components: {
     FormCustomTest,
+    NavbarVue,
   },
   props: {
     selectedTarget: {

@@ -32,7 +32,7 @@ export default {
 
     const textInputs = computed(() => {
       return Object.keys(store.fields)
-        .filter((key) => key !== "local" && key !== "args")
+        .filter((key) => key !== "local_execution" && key !== "args")
         .map((key) => ({
           name: key,
           value: store.fields[key].value,
@@ -42,7 +42,7 @@ export default {
     });
 
     const checkboxInputs = computed(() => {
-      return ["local", "args"].map((key) => ({
+      return ["local_execution", "args"].map((key) => ({
         name: key,
         value: store.fields[key].value,
         type: "checkbox",
@@ -54,7 +54,7 @@ export default {
     };
 
     const handleHoverField = (fieldName) => {
-      if (fieldName === "id") {
+      if (fieldName === "technique_id") {
         store.fetchIDs();
         store.fetchTests();
       }

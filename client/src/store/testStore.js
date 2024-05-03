@@ -9,7 +9,7 @@ export const useTestStore = defineStore("testStore", {
         tooltip: "Enter the URL of the target",
         placeholder: "Enter URL",
       },
-      id: {
+      technique_id: {
         value: "",
         tooltip: "Enter the ID of the target",
         placeholder: "Enter ID",
@@ -19,12 +19,12 @@ export const useTestStore = defineStore("testStore", {
         tooltip: "Enter the name of the test",
         placeholder: "Enter test name",
       },
-      desc: {
+      description: {
         value: "",
         tooltip: "Enter a description for the test",
         placeholder: "Enter description",
       },
-      filename: {
+      file_name: {
         value: "",
         tooltip: "Enter the filename of the test",
         placeholder: "Enter filename",
@@ -34,12 +34,12 @@ export const useTestStore = defineStore("testStore", {
         tooltip: "Enter the path to the executable",
         placeholder: "Enter executable path",
       },
-      local: {
+      local_execution: {
         value: false,
         tooltip: "Check if the test is to be executed locally",
       },
       args: {
-        value: "",
+        value: false,
         tooltip: "Enter any additional arguments for the test",
         placeholder: "Enter additional arguments",
       },
@@ -65,7 +65,7 @@ export const useTestStore = defineStore("testStore", {
       }
     },
     async submitCustomTest() {
-      if (!this.isFormValid) return;
+      console.log("Submit custom test");
       const requestData = {
         action: "test",
         ...Object.fromEntries(
@@ -73,6 +73,7 @@ export const useTestStore = defineStore("testStore", {
         ),
       };
       try {
+        console.log("Submit after requestData", requestData);
         const response = await axios.post("/api.php", requestData);
         console.log(response.data);
       } catch (error) {
