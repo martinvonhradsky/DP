@@ -11,7 +11,7 @@
       v-for="(input, index) in checkboxInputs"
       :key="index"
       :field="input"
-      @updateField="handleUpdateField"
+      @update-value="handleUpdate"
     />
   </div>
 </template>
@@ -49,9 +49,9 @@ export default {
       }));
     });
 
-    const handleUpdate = (fieldName, value) => {
-      store.handleFieldUpdate(fieldName, value);
-    };
+    function handleUpdate({ name, value }) {
+      store.handleFieldUpdate({ field: name, value });
+    }
 
     const handleHover = (fieldName) => {
       if (fieldName === "technique_id") {
