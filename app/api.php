@@ -360,6 +360,9 @@ function saveTest($json_data){
   $id = $json_data->technique_id;
   $args = $json_data->args;
 
+  $local = $local ? 1 : 0;
+  $args = $args ? 1 : 0;
+
   // Check if ID is valid
   if(!isID($id)){
     http_response_code(400);
@@ -397,7 +400,8 @@ function saveTest($json_data){
     $num = $max + 1;
   }
   // Execute custom test script
-  $command = "../engine/custom_test.sh -i ".$id." -u ".$url." -n ".$num;  
+  $command = "../engine/custom_test.sh -i ".$id." -u ".$url." -n ".$num; 
+
   // Execute the command with parameters
   $output = shell_exec($command);
 
@@ -445,6 +449,8 @@ function editTest($json_data){
   $id = $json_data->technique_id;
   $args = $json_data->args;
 
+  $local = $local ? 1 : 0;
+  $args = $args ? 1 : 0;
   // Check if ID is valid
   if(!isID($id)){
     http_response_code(400);
@@ -496,7 +502,7 @@ function deleteTest($tech, $test){
       ':technique_id' => $tech,
       ':test_number' => $test
     );
-
+    echo "tech $tech test: $test";
     // Execute the statement
     $stmt->execute($params);
 
@@ -505,7 +511,6 @@ function deleteTest($tech, $test){
       // Deletion successful, now delete the corresponding folder
       $folder_path = "../engine/customs/$tech/$test"; 
       $delete_script_path = "../engine/delete_test.sh"; 
-
       // Execute the delete_test.sh script
       $output = shell_exec("$delete_script_path $folder_path");
 
@@ -719,7 +724,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
         break;
       case 'test':
         if(isset($json_data->technique_id) && isset($json_data->test_number)){
-          
           deleteTest($json_data->technique_id, $json_data->test_number);
         }
         break;
