@@ -65,21 +65,14 @@ export const useAddCustomTestStore = defineStore("addCustomTestStore", {
       }
     },
     async submitCustomTest() {
-      console.log("Submit custom test");
       const requestData = {
         action: "test",
         ...Object.fromEntries(
           Object.entries(this.fields).map(([key, field]) => [key, field.value])
         ),
       };
-      try {
-        console.log("Submit after requestData", requestData);
-        const response = await axios.post("/api.php", requestData);
-        console.log(response.data);
-      } catch (error) {
-        console.error("Failed to submit custom test:", error);
-        alert("Error submitting test: " + error.message);
-      }
+      const response = await axios.post("/api.php", requestData);
+      console.log(response.data);
     },
   },
 });

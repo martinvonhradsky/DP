@@ -4,13 +4,13 @@
       v-for="(input, index) in textInputs"
       :key="index"
       :field="input"
-      @updateField="handleUpdateField"
+      @update-value="handleUpdate"
     />
     <CheckboxInputComponent
       v-for="(input, index) in checkboxInputs"
       :key="index"
       :field="input"
-      @updateField="handleUpdateField"
+      @update-value="handleUpdate"
     />
   </div>
 </template>
@@ -48,11 +48,11 @@ export default {
       }));
     });
 
-    const handleUpdateField = (fieldName, value) => {
-      store.handleFieldUpdate(fieldName, value);
-    };
+    function handleUpdate({ name, value }) {
+      store.handleFieldUpdate({ field: name, value });
+    }
 
-    return { textInputs, checkboxInputs, handleUpdateField };
+    return { textInputs, checkboxInputs, handleUpdate };
   },
 };
 </script>
