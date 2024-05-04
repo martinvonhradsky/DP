@@ -8,26 +8,23 @@
       type="text"
       :placeholder="field.placeholder"
       :value="field.value"
-      @input="updateValue($event.target.value)"
-      @mouseover="$emit('hoverField', field.name)"
+      @input="emitUpdate($event.target.value)"
+      @mouseover="emitHover()"
       class="w-full"
     />
   </div>
 </template>
 
 <script>
-import { useTestStore } from "../../../store/testStore.js";
-
 export default {
   props: ["field"],
-  setup(props) {
-    const store = useTestStore();
-
-    function updateValue(value) {
-      store.handleFieldUpdate({ field: props.field.name, value });
-    }
-
-    return { updateValue };
+  methods: {
+    emitUpdate(value) {
+      this.$emit("update-value", { name: this.field.name, value: value });
+    },
+    emitHover() {
+      this.$emit("hover-field", this.field.name);
+    },
   },
 };
 </script>

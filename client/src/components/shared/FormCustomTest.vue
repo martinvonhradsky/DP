@@ -4,8 +4,8 @@
       v-for="(input, index) in textInputs"
       :key="index"
       :field="input"
-      @updateField="handleUpdateField"
-      @hoverField="handleHoverField"
+      @update-value="handleUpdate"
+      @hover-field="handleHover"
     />
     <CheckboxInputComponent
       v-for="(input, index) in checkboxInputs"
@@ -49,18 +49,18 @@ export default {
       }));
     });
 
-    const handleUpdateField = (fieldName, value) => {
+    const handleUpdate = (fieldName, value) => {
       store.handleFieldUpdate(fieldName, value);
     };
 
-    const handleHoverField = (fieldName) => {
+    const handleHover = (fieldName) => {
       if (fieldName === "technique_id") {
         store.fetchIDs();
         store.fetchTests();
       }
     };
 
-    return { textInputs, checkboxInputs, handleUpdateField, handleHoverField };
+    return { textInputs, checkboxInputs, handleUpdate, handleHover };
   },
 };
 </script>

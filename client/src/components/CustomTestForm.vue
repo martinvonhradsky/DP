@@ -1,7 +1,7 @@
 <template>
   <div class="flex justify-around">
     <div class="w-1/5 min-w-1/5">
-      <FormCustomTest :fields="store.fields" @updateField="handleUpdateField" />
+      <FormCustomTest :fields="store.fields" @updateField="handleFieldUpdate" />
       <div>
         <button
           v-if="store.selectedTest !== null"
@@ -113,11 +113,22 @@ export default {
       store: useTestStore(),
     };
   },
+  setup() {
+    const store = useTestStore();
+
+    return {
+      fields: store.fields,
+      labels: store.labels,
+      handleFieldUpdate: store.handleFieldUpdate,
+      submitCustomTest: store.submitCustomTest,
+    };
+  },
   methods: {
-    handleUpdateField(fieldName, value) {
-      this.store.handleFieldUpdate({ field: fieldName, value });
+    updateValue(fieldName, value) {
+      this.store.handleFieldUpdate(fieldName, value);
     },
     handleTechSelect(tech) {
+      console.log("store", this.store.fields);
       this.store.handleTechSelect(tech);
     },
     handleTestSelect(test) {
@@ -126,12 +137,12 @@ export default {
     setSelectedTest(test) {
       this.store.setSelectedTest(test);
     },
-    submitCustomTest() {
-      this.store.submitCustomTest();
-    },
     deleteCustomTest(test) {
       this.store.deleteCustomTest(test);
     },
+  },
+  created() {
+    this.store = useTestStore();
   },
 };
 </script>
