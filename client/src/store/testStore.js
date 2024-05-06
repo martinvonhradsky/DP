@@ -60,12 +60,14 @@ export const useTestStore = defineStore("testStore", {
       }
     },
     async submitCustomTest() {
-      console.log("Submit custom test");
+      console.log("Submit custom test s test_number: " + this.selectedTest.test_number);
       const requestData = {
-        action: "test",
+        action: "edit_test",
+        test_number: this.selectedTest.test_number,
         ...Object.fromEntries(
           Object.entries(this.fields).map(([key, field]) => [key, field.value])
         ),
+        
       };
       try {
         console.log("Submit after requestData", requestData);

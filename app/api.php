@@ -693,7 +693,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         echo $result;
         break;
-      case 'test': 
+      case 'test':
         saveTest($json_data);
         break;
       case 'edit_test':

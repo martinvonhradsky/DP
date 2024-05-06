@@ -115,6 +115,7 @@ export default {
   },
   setup() {
     const store = useTestStore();
+    console.log("joooj krista");
 
     return {
       fields: store.fields,
