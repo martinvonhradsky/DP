@@ -8,4 +8,6 @@ export default {
 };
 </script>
 
-<style></style>
+<style>
+@import "vue-select/dist/vue-select.css";
+</style>

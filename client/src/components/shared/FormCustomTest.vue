@@ -14,6 +14,7 @@
       @update-value="handleUpdate"
     />
   </div>
+  <v-select> </v-select>
 </template>
 
 <script>
@@ -21,11 +22,13 @@ import { computed } from "vue";
 import { useTestStore } from "../../store/testStore.js";
 import TextInputComponent from "../shared/inputs/TextInputComponent.vue";
 import CheckboxInputComponent from "../shared/inputs/CheckboxInputComponent.vue";
+import vSelect from "vue-select";
 
 export default {
   components: {
     TextInputComponent,
     CheckboxInputComponent,
+    vSelect,
   },
   setup() {
     const store = useTestStore();

@@ -3,6 +3,8 @@ import { createPinia } from "pinia";
 import App from "./App.vue";
 import "./style.css";
 
+import { VueSelect } from "vue-select";
+
 import router from "./router.js";
 import axios from "axios";
 import { SERVER_IP } from "../config"; // Import the SERVER_IP constant
@@ -14,4 +16,5 @@ const app = createApp(App);
 app.use(router);
 app.config.globalProperties.$axios = axios;
 app.use(pinia);
+app.component("v-select", VueSelect);
 app.mount("#app");
