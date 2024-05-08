@@ -1,20 +1,5 @@
 <template>
-  <div class="flex justify-around">
-    <div class="w-1/5 min-w-1/5">
-      <FormCustomTest :fields="store.fields" @updateField="handleFieldUpdate" />
-      <div>
-        <button
-          v-if="store.selectedTest !== null"
-          class="btn btn-blue bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none disabled:bg-gray-400 disabled:text-gray-700 disabled:cursor-not-allowed disabled:border-gray-700"
-          type="submit"
-          @click="submitCustomTest(test)"
-          :disabled="!store.isFormValid"
-        >
-          Edit Test
-        </button>
-      </div>
-    </div>
-
+  <div>
     <div class="pt-32 ms-2 w-3/5 min-w-3/5">
       <div class="flex justify-start">
         <div v-if="store.leftColumn">
@@ -80,18 +65,8 @@
                         >
                           Edit
                         </button>
-                        <p>
-                          <button @click="showModal">Show modal</button>
-                        </p>
-                        <!-- If the option changed modal component the name
-  <MyModal>
-  -->
-                        <Modal v-model="isShow" :close="closeModal">
-                          <div class="modal">
-                            <p>Hello</p>
-                            <button @click="closeModal">close</button>
-                          </div>
-                        </Modal>
+                        <button @click="showModal">Show modal</button>
+                        <!-- If the option changed modal component the name <MyModal> -->
                         <button
                           @click.stop="deleteCustomTest(test)"
                           class="delete-button p-2"
@@ -108,6 +83,29 @@
         </div>
       </div>
     </div>
+    <Modal v-model="isShow" :close="closeModal">
+      <div class="modal flex flex-col">
+        <div class="justify-self-center">
+          <h2>Edit Custom Test</h2>
+          <h3>Form</h3>
+        </div>
+        <br />
+        <div>
+          <FormCustomTest
+            :fields="store.fields"
+            @updateField="handleFieldUpdate"
+          />
+          <button
+            class="btn btn-blue bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none disabled:bg-gray-400 disabled:text-gray-700 disabled:cursor-not-allowed disabled:border-gray-700"
+            type="submit"
+            @click="submitCustomTest(test)"
+            :disabled="!store.isFormValid"
+          >
+            Edit Test
+          </button>
+        </div>
+      </div>
+    </Modal>
   </div>
 </template>
 
@@ -135,10 +133,6 @@ export default {
       isShow.value = true;
     }
 
-    function closeModal() {
-      isShow.value = false;
-    }
-
     return {
       fields: store.fields,
       labels: store.labels,
@@ -146,7 +140,6 @@ export default {
       submitCustomTest: store.submitCustomTest,
       isShow,
       showModal,
-      closeModal,
     };
   },
   methods: {
@@ -175,7 +168,7 @@ export default {
 
 <style scoped>
 .modal {
-  width: 300px;
+  width: 500px;
   padding: 30px;
   box-sizing: border-box;
   background-color: #fff;

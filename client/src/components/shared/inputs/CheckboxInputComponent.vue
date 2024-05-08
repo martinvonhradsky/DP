@@ -1,6 +1,7 @@
 <template>
   <div class="mb-5">
     <input
+      class="mr-5"
       :id="field.name"
       type="checkbox"
       :checked="field.value"

@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="flex flex-col">
     <TextInputComponent
       v-for="(input, index) in textInputs"
       :key="index"
@@ -8,6 +8,7 @@
     />
     <CheckboxInputComponent
       v-for="(input, index) in checkboxInputs"
+      class="justify-self-start max-w-max"
       :key="index"
       :field="input"
       @update-value="handleUpdate"
