@@ -77,13 +77,14 @@
                 </tr>
               </tbody>
             </table>
-            <EasyDataTable
-              class="test z=10"
-              :headers="headers"
-              :items="store.leftColumn"
-            />
           </div>
         </div>
+        <EasyDataTable
+          class="test z=10"
+          :headers="headers"
+          :items="store.leftColumn"
+          @click-row="handleTechSelect"
+        />
       </div>
     </div>
     <Modal v-model="isShow" :close="closeModal">
