@@ -80,6 +80,18 @@
                         >
                           Edit
                         </button>
+                        <p>
+                          <button @click="showModal">Show modal</button>
+                        </p>
+                        <!-- If the option changed modal component the name
+  <MyModal>
+  -->
+                        <Modal v-model="isShow" :close="closeModal">
+                          <div class="modal">
+                            <p>Hello</p>
+                            <button @click="closeModal">close</button>
+                          </div>
+                        </Modal>
                         <button
                           @click.stop="deleteCustomTest(test)"
                           class="delete-button p-2"
@@ -102,9 +114,10 @@
 <script>
 import FormCustomTest from "./shared/FormCustomTest.vue";
 import { useTestStore } from "../store/testStore";
+import { ref } from "vue";
 
 export default {
-  name: "CustomTestForm",
+  name: "CustomTest",
   components: {
     FormCustomTest,
   },
@@ -115,13 +128,25 @@ export default {
   },
   setup() {
     const store = useTestStore();
-    console.log("joooj krista");
+
+    const isShow = ref(false);
+
+    function showModal() {
+      isShow.value = true;
+    }
+
+    function closeModal() {
+      isShow.value = false;
+    }
 
     return {
       fields: store.fields,
       labels: store.labels,
       handleFieldUpdate: store.handleFieldUpdate,
       submitCustomTest: store.submitCustomTest,
+      isShow,
+      showModal,
+      closeModal,
     };
   },
   methods: {
@@ -149,6 +174,14 @@ export default {
 </script>
 
 <style scoped>
+.modal {
+  width: 300px;
+  padding: 30px;
+  box-sizing: border-box;
+  background-color: #fff;
+  font-size: 20px;
+  text-align: center;
+}
 .table-container {
   overflow-y: auto; /* Enable vertical scrolling */
   max-height: 48vh; /* Set maximum height */

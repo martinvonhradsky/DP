@@ -1,23 +1,10 @@
 <template>
   <div>
-    <p>
-      <button @click="showModal">Show modal</button>
-    </p>
-    <!-- If the option changed modal component the name
-  <MyModal>
-  -->
-    <Modal v-model="isShow" :close="closeModal">
-      <div class="modal">
-        <p>Hello</p>
-        <button @click="closeModal">close</button>
-      </div>
-    </Modal>
     <TextInputComponent
       v-for="(input, index) in textInputs"
       :key="index"
       :field="input"
       @update-value="handleUpdate"
-      @hover-field="handleHover"
     />
     <CheckboxInputComponent
       v-for="(input, index) in checkboxInputs"
@@ -29,7 +16,7 @@
 </template>
 
 <script>
-import { computed, ref } from "vue";
+import { computed } from "vue";
 import { useTestStore } from "../../store/testStore.js";
 import TextInputComponent from "../shared/inputs/TextInputComponent.vue";
 import CheckboxInputComponent from "../shared/inputs/CheckboxInputComponent.vue";
@@ -41,15 +28,6 @@ export default {
   },
   setup() {
     const store = useTestStore();
-    const isShow = ref(false);
-
-    function showModal() {
-      isShow.value = true;
-    }
-
-    function closeModal() {
-      isShow.value = false;
-    }
 
     const textInputs = computed(() => {
       return Object.keys(store.fields)
@@ -74,21 +52,13 @@ export default {
       store.handleFieldUpdate({ field: name, value });
     }
 
-    const handleHover = (fieldName) => {
-      if (fieldName === "technique_id") {
-        store.fetchIDs();
-        store.fetchTests();
-      }
-    };
+    store.fetchIDs();
+    store.fetchTests();
 
     return {
       textInputs,
       checkboxInputs,
       handleUpdate,
-      handleHover,
-      isShow,
-      showModal,
-      closeModal,
     };
   },
 };
