@@ -5,12 +5,7 @@
         <div v-if="store.leftColumn" class="w-2/5">
           <EasyDataTable
             v-if="!isShow"
-            :class="{
-              'test cursor-pointer': true,
-              'bg-blue-200':
-                store.selectedTech &&
-                store.selectedTech.technique_id === clickedRow.technique_id,
-            }"
+            class="cursor-pointer"
             :headers="techHeaders"
             :items="store.leftColumn"
             @click-row="handleTechSelect"
@@ -46,13 +41,13 @@
                       <div class="flex">
                         <button
                           @click="setSelectedTest(test), showModal()"
-                          class="edit-button p-2"
+                          class="edit-button p-1 m-1 bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded focus:outline-none text-xs"
                         >
                           Edit
                         </button>
                         <button
                           @click.stop="deleteCustomTest(test)"
-                          class="delete-button p-2"
+                          class="delete-button p-1 m-1 bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded focus:outline-none text-xs"
                         >
                           Delete
                         </button>
