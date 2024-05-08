@@ -60,13 +60,11 @@
 
                       <div class="flex">
                         <button
-                          @click="setSelectedTest(test)"
+                          @click="setSelectedTest(test), showModal()"
                           class="edit-button p-2"
                         >
                           Edit
                         </button>
-                        <button @click="showModal">Show modal</button>
-                        <!-- If the option changed modal component the name <MyModal> -->
                         <button
                           @click.stop="deleteCustomTest(test)"
                           class="delete-button p-2"
@@ -98,7 +96,10 @@
           <button
             class="btn btn-blue bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none disabled:bg-gray-400 disabled:text-gray-700 disabled:cursor-not-allowed disabled:border-gray-700"
             type="submit"
-            @click="submitCustomTest(test)"
+            @click="
+              submitCustomTest();
+              closeModal();
+            "
             :disabled="!store.isFormValid"
           >
             Edit Test
@@ -127,11 +128,18 @@ export default {
   setup() {
     const store = useTestStore();
 
+    store.fetchIDs();
+    store.fetchTests();
+
     const isShow = ref(false);
 
-    function showModal() {
+    const showModal = () => {
       isShow.value = true;
-    }
+    };
+
+    const closeModal = () => {
+      isShow.value = false;
+    };
 
     return {
       fields: store.fields,
@@ -140,6 +148,7 @@ export default {
       submitCustomTest: store.submitCustomTest,
       isShow,
       showModal,
+      closeModal,
     };
   },
   methods: {
@@ -147,7 +156,6 @@ export default {
       this.store.handleFieldUpdate(fieldName, value);
     },
     handleTechSelect(tech) {
-      console.log("store", this.store.fields);
       this.store.handleTechSelect(tech);
     },
     handleTestSelect(test) {

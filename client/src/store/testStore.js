@@ -59,20 +59,31 @@ export const useTestStore = defineStore("testStore", {
         this.fields[field].value = value;
       }
     },
+    resetFields() {
+      this.fields.technique_id.value = "";
+      this.fields.name.value = "";
+      this.fields.description.value = "";
+      this.fields.file_name.value = "";
+      this.fields.executable.value = "";
+      this.fields.local_execution.value = false;
+      this.fields.args.value = false;
+    },
     async submitCustomTest() {
-      console.log("Submit custom test s test_number: " + this.selectedTest.test_number);
+      console.log(
+        "Submit custom test s test_number: " + this.selectedTest.test_number
+      );
       const requestData = {
         action: "edit_test",
         test_number: this.selectedTest.test_number,
         ...Object.fromEntries(
           Object.entries(this.fields).map(([key, field]) => [key, field.value])
         ),
-        
       };
       try {
         console.log("Submit after requestData", requestData);
         const response = await axios.post("/api.php", requestData);
         console.log(response.data);
+        this.resetFields();
       } catch (error) {
         console.error("Failed to submit custom test:", error);
         alert("Error submitting test: " + error.message);

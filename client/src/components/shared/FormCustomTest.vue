@@ -53,9 +53,6 @@ export default {
       store.handleFieldUpdate({ field: name, value });
     }
 
-    store.fetchIDs();
-    store.fetchTests();
-
     return {
       textInputs,
       checkboxInputs,
