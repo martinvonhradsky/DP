@@ -1,20 +1,5 @@
 <template>
-  <div class="flex justify-around">
-    <div class="w-1/5 min-w-1/5">
-      <FormCustomTest :fields="store.fields" @updateField="handleFieldUpdate" />
-      <div>
-        <button
-          v-if="store.selectedTest !== null"
-          class="btn btn-blue bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none disabled:bg-gray-400 disabled:text-gray-700 disabled:cursor-not-allowed disabled:border-gray-700"
-          type="submit"
-          @click="submitCustomTest(test)"
-          :disabled="!store.isFormValid"
-        >
-          Edit Test
-        </button>
-      </div>
-    </div>
-
+  <div>
     <div class="pt-32 ms-2 w-3/5 min-w-3/5">
       <div class="flex justify-start">
         <div v-if="store.leftColumn">
@@ -75,7 +60,7 @@
 
                       <div class="flex">
                         <button
-                          @click="setSelectedTest(test)"
+                          @click="setSelectedTest(test), showModal()"
                           class="edit-button p-2"
                         >
                           Edit
@@ -96,15 +81,42 @@
         </div>
       </div>
     </div>
+    <Modal v-model="isShow" :close="closeModal">
+      <div class="modal flex flex-col">
+        <div class="justify-self-center">
+          <h2>Edit Custom Test</h2>
+          <h3>Form</h3>
+        </div>
+        <br />
+        <div>
+          <FormCustomTest
+            :fields="store.fields"
+            @updateField="handleFieldUpdate"
+          />
+          <button
+            class="btn btn-blue bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none disabled:bg-gray-400 disabled:text-gray-700 disabled:cursor-not-allowed disabled:border-gray-700"
+            type="submit"
+            @click="
+              submitCustomTest();
+              closeModal();
+            "
+            :disabled="!store.isFormValid"
+          >
+            Edit Test
+          </button>
+        </div>
+      </div>
+    </Modal>
   </div>
 </template>
 
 <script>
 import FormCustomTest from "./shared/FormCustomTest.vue";
 import { useTestStore } from "../store/testStore";
+import { ref } from "vue";
 
 export default {
-  name: "CustomTestForm",
+  name: "CustomTest",
   components: {
     FormCustomTest,
   },
@@ -115,13 +127,28 @@ export default {
   },
   setup() {
     const store = useTestStore();
-    console.log("joooj krista");
+
+    store.fetchIDs();
+    store.fetchTests();
+
+    const isShow = ref(false);
+
+    const showModal = () => {
+      isShow.value = true;
+    };
+
+    const closeModal = () => {
+      isShow.value = false;
+    };
 
     return {
       fields: store.fields,
       labels: store.labels,
       handleFieldUpdate: store.handleFieldUpdate,
       submitCustomTest: store.submitCustomTest,
+      isShow,
+      showModal,
+      closeModal,
     };
   },
   methods: {
@@ -129,7 +156,6 @@ export default {
       this.store.handleFieldUpdate(fieldName, value);
     },
     handleTechSelect(tech) {
-      console.log("store", this.store.fields);
       this.store.handleTechSelect(tech);
     },
     handleTestSelect(test) {
@@ -149,6 +175,14 @@ export default {
 </script>
 
 <style scoped>
+.modal {
+  width: 500px;
+  padding: 30px;
+  box-sizing: border-box;
+  background-color: #fff;
+  font-size: 20px;
+  text-align: center;
+}
 .table-container {
   overflow-y: auto; /* Enable vertical scrolling */
   max-height: 48vh; /* Set maximum height */

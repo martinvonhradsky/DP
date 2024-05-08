@@ -1,14 +1,14 @@
 <template>
-  <div>
+  <div class="flex flex-col">
     <TextInputComponent
       v-for="(input, index) in textInputs"
       :key="index"
       :field="input"
       @update-value="handleUpdate"
-      @hover-field="handleHover"
     />
     <CheckboxInputComponent
       v-for="(input, index) in checkboxInputs"
+      class="justify-self-start max-w-max"
       :key="index"
       :field="input"
       @update-value="handleUpdate"
@@ -53,14 +53,11 @@ export default {
       store.handleFieldUpdate({ field: name, value });
     }
 
-    const handleHover = (fieldName) => {
-      if (fieldName === "technique_id") {
-        store.fetchIDs();
-        store.fetchTests();
-      }
+    return {
+      textInputs,
+      checkboxInputs,
+      handleUpdate,
     };
-
-    return { textInputs, checkboxInputs, handleUpdate, handleHover };
   },
 };
 </script>

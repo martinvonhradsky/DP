@@ -1,6 +1,9 @@
 <template>
-  <div class="mb-5">
-    <label :for="field.name" class="block text-gray-700 font-bold mb-2">
+  <div class="mb-5 flex flex-col">
+    <label
+      :for="field.name"
+      class="block text-gray-700 font-bold mb-2 justify-self-start max-w-max"
+    >
       {{ field.name }}
     </label>
     <input
