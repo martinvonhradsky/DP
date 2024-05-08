@@ -1,11 +1,13 @@
 <template>
   <div>
     <NavbarVue />
+    <CustomTest />
     <EasyDataTable class="test" :headers="headers" :items="items" />
   </div>
 </template>
 
 <script>
+import CustomTest from "./CustomTest.vue";
 import NavbarVue from "./PageNavbar.vue";
 import Vue3EasyDataTable from "vue3-easy-data-table";
 
@@ -13,6 +15,7 @@ export default {
   components: {
     NavbarVue,
     EasyDataTable: Vue3EasyDataTable,
+    CustomTest,
   },
   data() {
     return {
