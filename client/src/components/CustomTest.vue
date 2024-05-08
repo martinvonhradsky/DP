@@ -4,7 +4,13 @@
       <div class="flex justify-start w-full">
         <div v-if="store.leftColumn" class="w-2/5">
           <EasyDataTable
-            class="test z=10 cursor-pointer"
+            v-if="!isShow"
+            :class="{
+              'test cursor-pointer': true,
+              'bg-blue-200':
+                store.selectedTech &&
+                store.selectedTech.technique_id === clickedRow.technique_id,
+            }"
             :headers="techHeaders"
             :items="store.leftColumn"
             @click-row="handleTechSelect"
@@ -12,11 +18,11 @@
         </div>
 
         <div v-if="store.selectedTech">
-          <div class="ps-2">
-            <table class="border-collapse border border-gray-400 min-h-max">
+          <div v-if="!isShow" class="ps-2">
+            <table class="border-collapse border min-h-max">
               <thead>
                 <tr>
-                  <th class="border border-gray-400 px-4 py-2">
+                  <th class="border px-4 py-2">
                     Tests - {{ store.selectedTech.technique_id }}
                   </th>
                 </tr>
@@ -32,7 +38,7 @@
                       store.selectedTech &&
                       store.selectedTech.technique_id === test.technique_id
                     "
-                    class="border border-gray-400 px-4 py-2"
+                    class="border px-4 py-2"
                   >
                     <div class="flex justify-between items-center">
                       {{ test.name }}
