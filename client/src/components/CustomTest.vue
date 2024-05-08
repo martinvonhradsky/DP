@@ -1,45 +1,24 @@
 <template>
   <div>
-    <div class="pt-32 ms-2 w-3/5 min-w-3/5">
-      <div class="flex justify-start">
-        <div v-if="store.leftColumn">
-          <div class="table-container">
-            <table class="border-collapse border border-gray-400 h-max-content">
-              <div>
-                <h4
-                  class="border border-gray-400 px-4 py-2"
-                  v-if="leftColumn !== null"
-                >
-                  Technic ID
-                </h4>
-              </div>
-              <tbody>
-                <tr
-                  v-for="tech in store.leftColumn"
-                  :key="tech"
-                  @click="handleTechSelect(tech)"
-                  :class="{ 'bg-blue-200': store.selectedTech === tech }"
-                >
-                  <td
-                    class="border border-gray-400 px-4 py-2"
-                    style="width: 200px"
-                  >
-                    {{ tech.technique_id }}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+    <div class="p-5">
+      <div class="flex justify-start w-full">
+        <div v-if="store.leftColumn" class="w-2/5">
+          <EasyDataTable
+            class="test z=10 cursor-pointer"
+            :headers="techHeaders"
+            :items="store.leftColumn"
+            @click-row="handleTechSelect"
+          />
         </div>
 
         <div v-if="store.selectedTech">
           <div class="ps-2">
-            <table
-              class="table-container2 border-collapse border border-gray-400 min-w-80 max-w-80"
-            >
+            <table class="border-collapse border border-gray-400 min-h-max">
               <thead>
                 <tr>
-                  <th class="border border-gray-400 px-4 py-2 w-48">Test</th>
+                  <th class="border border-gray-400 px-4 py-2">
+                    Tests - {{ store.selectedTech.technique_id }}
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -55,7 +34,7 @@
                     "
                     class="border border-gray-400 px-4 py-2"
                   >
-                    <div class="flex">
+                    <div class="flex justify-between items-center">
                       {{ test.name }}
 
                       <div class="flex">
@@ -79,12 +58,6 @@
             </table>
           </div>
         </div>
-        <EasyDataTable
-          class="test z=10"
-          :headers="headers"
-          :items="store.leftColumn"
-          @click-row="handleTechSelect"
-        />
       </div>
     </div>
     <Modal v-model="isShow" :close="closeModal">
@@ -125,7 +98,7 @@ import EasyDataTable from "vue3-easy-data-table";
 const store = useTestStore();
 const isShow = ref(false);
 
-const headers = [
+const techHeaders = [
   { text: "TECH ID", value: "technique_id" },
   { text: "TECH NAME", value: "name" },
 ];
@@ -144,7 +117,6 @@ onMounted(() => {
 });
 
 function handleTechSelect(tech) {
-  console.log(tech);
   store.handleTechSelect(tech);
 }
 
@@ -170,6 +142,7 @@ function submitCustomTest() {
   background-color: #fff;
   font-size: 20px;
   text-align: center;
+  z-index: 1000;
 }
 .table-container {
   overflow-y: auto; /* Enable vertical scrolling */

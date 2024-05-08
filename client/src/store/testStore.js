@@ -15,7 +15,7 @@ export const useTestStore = defineStore("testStore", {
         placeholder: "Enter test name",
       },
       description: {
-        value: "",
+        value: "", 
         tooltip: "Enter a description for the test",
         placeholder: "Enter description",
       },
@@ -69,9 +69,6 @@ export const useTestStore = defineStore("testStore", {
       this.fields.args.value = false;
     },
     async submitCustomTest() {
-      console.log(
-        "Submit custom test s test_number: " + this.selectedTest.test_number
-      );
       const requestData = {
         action: "edit_test",
         test_number: this.selectedTest.test_number,
@@ -80,7 +77,6 @@ export const useTestStore = defineStore("testStore", {
         ),
       };
       try {
-        console.log("Submit after requestData", requestData);
         const response = await axios.post("/api.php", requestData);
         console.log(response.data);
         this.resetFields();
@@ -116,9 +112,9 @@ export const useTestStore = defineStore("testStore", {
     },
     async deleteCustomTest(test) {
       const requestData = {
-        action: "test", // Assuming this is static or dynamically determined elsewhere
-        test_number: test.test_number, // This should be passed to the function or derived from the state
-        technique_id: test.technique_id, // Ensure this is the correct ID for deletion
+        action: "test",
+        test_number: test.test_number,
+        technique_id: test.technique_id,
       };
 
       try {
