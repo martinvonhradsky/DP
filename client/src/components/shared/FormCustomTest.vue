@@ -1,5 +1,17 @@
 <template>
   <div>
+    <p>
+      <button @click="showModal">Show modal</button>
+    </p>
+    <!-- If the option changed modal component the name
+  <MyModal>
+  -->
+    <Modal v-model="isShow" :close="closeModal">
+      <div class="modal">
+        <p>Hello</p>
+        <button @click="closeModal">close</button>
+      </div>
+    </Modal>
     <TextInputComponent
       v-for="(input, index) in textInputs"
       :key="index"
@@ -17,7 +29,7 @@
 </template>
 
 <script>
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { useTestStore } from "../../store/testStore.js";
 import TextInputComponent from "../shared/inputs/TextInputComponent.vue";
 import CheckboxInputComponent from "../shared/inputs/CheckboxInputComponent.vue";
@@ -29,6 +41,15 @@ export default {
   },
   setup() {
     const store = useTestStore();
+    const isShow = ref(false);
+
+    function showModal() {
+      isShow.value = true;
+    }
+
+    function closeModal() {
+      isShow.value = false;
+    }
 
     const textInputs = computed(() => {
       return Object.keys(store.fields)
@@ -60,7 +81,15 @@ export default {
       }
     };
 
-    return { textInputs, checkboxInputs, handleUpdate, handleHover };
+    return {
+      textInputs,
+      checkboxInputs,
+      handleUpdate,
+      handleHover,
+      isShow,
+      showModal,
+      closeModal,
+    };
   },
 };
 </script>
