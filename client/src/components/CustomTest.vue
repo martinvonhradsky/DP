@@ -110,68 +110,43 @@
   </div>
 </template>
 
-<script>
+<script setup>
+import { onMounted, ref } from "vue";
 import FormCustomTest from "./shared/FormCustomTest.vue";
 import { useTestStore } from "../store/testStore";
-import { ref } from "vue";
 
-export default {
-  name: "CustomTest",
-  components: {
-    FormCustomTest,
-  },
-  data() {
-    return {
-      store: useTestStore(),
-    };
-  },
-  setup() {
-    const store = useTestStore();
+const store = useTestStore();
+const isShow = ref(false);
 
-    store.fetchIDs();
-    store.fetchTests();
+function showModal() {
+  isShow.value = true;
+}
 
-    const isShow = ref(false);
+function closeModal() {
+  isShow.value = false;
+}
 
-    const showModal = () => {
-      isShow.value = true;
-    };
+onMounted(() => {
+  store.fetchIDs();
+  store.fetchTests();
+});
 
-    const closeModal = () => {
-      isShow.value = false;
-    };
+function handleTechSelect(tech) {
+  store.handleTechSelect(tech);
+}
 
-    return {
-      fields: store.fields,
-      labels: store.labels,
-      handleFieldUpdate: store.handleFieldUpdate,
-      submitCustomTest: store.submitCustomTest,
-      isShow,
-      showModal,
-      closeModal,
-    };
-  },
-  methods: {
-    updateValue(fieldName, value) {
-      this.store.handleFieldUpdate(fieldName, value);
-    },
-    handleTechSelect(tech) {
-      this.store.handleTechSelect(tech);
-    },
-    handleTestSelect(test) {
-      this.store.handleTestSelect(test);
-    },
-    setSelectedTest(test) {
-      this.store.setSelectedTest(test);
-    },
-    deleteCustomTest(test) {
-      this.store.deleteCustomTest(test);
-    },
-  },
-  created() {
-    this.store = useTestStore();
-  },
-};
+function setSelectedTest(test) {
+  store.setSelectedTest(test);
+}
+
+function deleteCustomTest(test) {
+  store.deleteCustomTest(test);
+}
+
+function submitCustomTest() {
+  store.submitCustomTest();
+  closeModal();
+}
 </script>
 
 <style scoped>
