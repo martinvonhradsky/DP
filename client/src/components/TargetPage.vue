@@ -127,13 +127,15 @@
         .get("api.php?action=targets")
         .then((response) => {
           const newTargets = response.data;
+
           // Persist output over refetches of data.
           for (let j = 0; j < newTargets.length; ++j) {
             newTargets[j].outputFileId = null;
-
-            for (let i = 0; i < this.targets.length; ++i) {
-              if (this.target[i].alias == newTargets[j].alias) {
-                newTargets[j].outputFileId = this.target[i].outputFileId;
+            
+            // The last target is skiped -- it's `null`, see below.
+            for (let i = 0; i < this.targets.length - 1; ++i) {
+              if (this.targets[i].alias == newTargets[j].alias) {
+                newTargets[j].outputFileId = this.targets[i].outputFileId;
               }
             }
           }
