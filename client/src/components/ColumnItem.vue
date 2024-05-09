@@ -30,17 +30,17 @@ export default {
   },
   computed: {
     statusColorClass() {
-      switch (this.item.startpage) {
+      switch (this.item.status) {
         case "available":
-          return "bg-white text-black";
+          return "bg-yellow-100 text-black";
         case "not available":
-          return "bg-gray-400 text-black";
+          return "bg-gray-100 text-black";
         case "detected":
-          return "bg-green-500 text-white";
+          return "bg-green-300 text-black";
         case "executed":
-          return "bg-red-500 text-white";
+          return "bg-orange-300 text-black";
         default:
-          return "";
+        return "bg-gray-100 text-black";
       }
     },
   },

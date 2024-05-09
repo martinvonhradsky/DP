@@ -49,26 +49,27 @@
               ? 'Select a target and a test first.'
               : ''
           "
-          :disabled="isLoading || (selectedTest ? (selectedTest.local_execution ? !selectedTarget : false) : true) "
+          :disabled="isExecutionStarting || didTestTargetPairExecute || (selectedTest ? (selectedTest.local_execution ? !selectedTarget : false) : true) "
         >
           Execute Test
         </button>
-        <button
-          v-if="testExecuted"
-          @click="saveTestResult"
-          class="w-48 h-12 border-solid border border-black bg-gray-400 px-4 py-2 rounded-md shadow-md focus:shadow-md mb-10"
-        >
-          Save test result
-        </button>
-        <div v-if="testExecuted" class="flex items-center mb-10">
+        <div v-if="didTestTargetPairExecute" class="flex items-center mb-10">
           <input
             type="checkbox"
             id="testDetected"
-            v-model="testDetected"
+            v-model="selectedTest.executions[selectedTarget.alias].detected"
             class="mr-5"
           />
           <label for="testDetected">Test Detected</label>
         </div>
+        <button
+          v-if="didTestTargetPairExecute"
+          :disabled="selectedTest.executions[selectedTarget.alias].isResultBeingSaved"
+          @click="saveTestResult"
+          class="w-48 h-12 border-solid border border-black bg-gray-400 px-4 py-2 rounded-md shadow-md focus:shadow-md mb-10 disabled:opacity-50 disabled:bg-gray-400"
+        >
+          Save test result
+        </button>
       </div>
     </div>
   </div>
@@ -97,9 +98,7 @@ export default {
       selectedTest: null,
       selectedTarget: null,
 
-      isLoading: false,
-      testExecuted: false,
-      testDetected: false,
+      isExecutionStarting: false,
     };
   },
   computed: {
@@ -108,7 +107,14 @@ export default {
         if (!this.selectedTest || !this.selectedTarget || this.selectedTest.technique_id !== techId) {
           return null;
         }
-        return this.selectedTest.executions[this.selectedTarget.alias] ?? null;
+        return this.selectedTest.executions[this.selectedTarget.alias]?.outputFileId ?? null;
+      }
+    },
+    didTestTargetPairExecute() {
+      if (!this.selectedTest || !this.selectedTarget) {
+        return false;
+      } else {
+        return (this.selectedTest.executions[this.selectedTarget.alias] ? true : false);
       }
     }
   },
@@ -117,9 +123,12 @@ export default {
     this.fetchTargets();
   },
   methods: {
+    makeTestId(techId, testNumber) {
+      return`${techId}-${testNumber}`;
+    },
     executeTest() {
-      this.isLoading = true;
-      const testId = `${this.selectedTest.technique_id}-${this.selectedTest.test_number}`;
+      this.isExecutionStarting = true;
+      const testId = this.makeTestId(this.selectedTest.technique_id, this.selectedTest.test_number);
       const args = this.selectedTest.argumentsValue;
       const targetAlias = this.selectedTarget.alias;
 
@@ -130,13 +139,17 @@ export default {
           true
         )
         .then((response) => {
-          this.selectedTest.executions[targetAlias] = response.data.output_file_id;
+          this.selectedTest.executions[targetAlias] = {
+            outputFileId: response.data.output_file_id,
+            detected: false,
+            isResultBeingSaved: false,
+          }
         })
         .catch((error) => {
           console.log(error);
         })
         .finally(() => {
-          this.isLoading = false;
+          this.isExecutionStarting = false;
         });
     },
     fetchTests(tech) {
@@ -150,7 +163,11 @@ export default {
               t.argumentsValue = "";
               // Format:
               // {
-              //   targetAlias: outputFileId,
+              //   targetAlias: {
+              //     outputFileId: string,
+              //     detected: boolean,
+              //     isResultBeingSaved: boolean,
+              //   }
               // }
               // Note: Only one execution per target is stored.
               t.executions = {};
@@ -203,13 +220,15 @@ export default {
       this.selectedTest = test;
     },
     saveTestResult() {
-      const selectedItem = this.techniques.find(
-                (item) => item.id === this.selectedTest.technique_id
-              );
+      const execution = this.selectedTest.executions[this.selectedTarget.alias];
+      execution.isResultBeingSaved = true;
+
       const requestData = {
         action: "history",
-        execution: selectedItem.executeOutput,
-        detected: this.testDetected,
+        testId:  this.makeTestId(this.selectedTest.technique_id, this.selectedTest.test_number),
+        target: this.selectedTarget.alias,
+        outputFileId: execution.outputFileId,
+        detected: execution.detected,
       };
       this.$axios
         .post("api.php", JSON.stringify(requestData), {
@@ -217,12 +236,12 @@ export default {
             "Content-Type": "application/json",
           },
         })
-        .then(() => {
-          this.testExecuted = false;
-        })
         .catch((error) => {
           console.log(error);
-        });
+        })
+        .finally(() => {
+          execution.isResultBeingSaved = false;
+        })
     },
   },
 };

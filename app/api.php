@@ -38,80 +38,8 @@ function getTestOutput($str) {
   return substr($parts[1], 3, -2);
 }
 
-# Get timespamp of start and end of execution from 
-# remove execution output from string and edit string to be valid json 
-function getResult($str, $metadata) {
-  $metadata = "'".substr($metadata, 3, -1)."'";
-  $metadata = str_replace("\\", "", $metadata);
-  $hack = explode('"', $metadata);
-  $metadata = json_decode($metadata, true);
-
-  $test_output = getTestOutput($str);
-  $str = explode("stdout", $str)[0];
-  $new_str = "";
-  $last_comma_pos = strrpos($str, ",");
-  if ($last_comma_pos !== false) {
-    $new_str = substr($str, 0, $last_comma_pos) . "}}";
-  }
-  if ($new_str !== ""){
-      $json_execution = json_decode($new_str);
-      $metadata = json_decode($metadata);
-      
-      $output = array (
-          "test_id" => $hack[3],
-          "target" => $hack[7],
-          "start" => $json_execution->result->start,
-          "end" => $json_execution->result->end,
-          "output" => $test_output,
-      );
-      return $output;
-  }else{
-      echo '{"Error" : "Data processing failed"}';
-      return null;
-  }
-}
-# Parse execution string
-function parseExecution($response) {
-  $response = urldecode($response);
-  # Get metadata from response
-  $metadata = preg_split("/\[start\]/", $response, 0)[0];
-  # Get test-result JSON from response
-  $test_result = preg_split("/\*{5,}/", $response);
-  # Get PLAY RECAP part of output to validate execution
-  $validation = $test_result[count($test_result) - 1];
-  # Get Execution output
-  $test_result = $test_result[count($test_result) - 2];
-  # filter out validation part
-  $test_result = explode("PLAY RECAP", $test_result, 2)[0];
-  # get clean JSON data
-  $test_result = explode(">", $test_result, 2)[1];
-
-  ##### VALIDATE EXECUTION
-  # If output contains unreachable=0 => target device is not reachable => exit
-  if (strpos($validation, 'unreachable=0') == false){
-    echo "Unreachable: " . $test_result ;
-    return null;
-  }
-  else{
-    # If execution failed, display message
-    if (strpos($validation, 'failed=0') == false){
-        echo "Execution failed: " . $test_result ;
-        return null;
-    }
-    else{
-        $json = getResult($test_result, $metadata);        
-        $json = json_encode($json);      
-    }
-  }
-    if ($json == null){
-      echo '{"Error" : "Saving test history failed: Unable to parse response."}';
-    } else {
-      return $json;
-    }
-
-}
-
-function saveHistory($json, $detected) {
+// Return 0 on success, non-zero on fail.
+function saveHistory($json) {
   try {
       // Create a new database object
       $db = new Database();
@@ -123,36 +51,26 @@ function saveHistory($json, $detected) {
 
       $stmt = $db->prepare($sql);
       // Extract the parameters from the JSON data and bind the values to the placeholders
-      
-      $data = json_decode($json, true);
-      $test_id = $data['test_id'];
-      $target = $data['target'];
-      $start = $data['start'];
-      $end = $data['end'];
-      $output = $data['output'];
-      $detected_param = $detected ? 'true' : 'false';
+      $test_id = $json->testId;
+      $target = $json->target;
+      $now = new \DateTime('now');
+      $start = $end = $now->format('D M d, Y G:i');
+      $outputFileId = $json->outputFileId;
+      $detected_param = $json->detected ? 'true' : 'false';
 
       $stmt->bindValue(':test_id', $test_id);
       $stmt->bindValue(':target', $target);
       $stmt->bindValue(':start', $start);
       $stmt->bindValue(':end', $end);
-      $stmt->bindValue(':output', $output);
+      $stmt->bindValue(':output', $outputFileId);
       $stmt->bindValue(':detected', $detected_param);
 
       // Execute the statement and return the test ID
       $check = $stmt->execute();
-      if($check){
-        echo "History saving was successfull";
-      }else{
-        echo "History saving failed.";
-      }
-
-      $db = null;
-      // Return test_id for status update for this id
-      return explode('-', $test_id)[0];
+      return ($check) ? 0 : 1;
   } catch (PDOException $e) {
       echo '{"status": "error","message":  " Failed to save test history: ' . $e->getMessage() . '"}';
-      return null;
+      return 1;
   }
 }
 
@@ -531,7 +449,35 @@ function deleteTest($tech, $test){
   }
 }
 
+function getTechniques() {
+  $query = "SELECT id, status FROM mitre WHERE id LIKE '%.%';";
+  $subTechniques = json_decode(executeQuery($query));
+  $query = "SELECT id, name, tactics, status FROM mitre WHERE id NOT LIKE '%.%';";
+  $techniques = json_decode(executeQuery($query));
 
+  $rankToStr = ['detected', 'executed', 'available', 'not available', ''];
+  $strToRank = [];
+  for ($i = 0; $i < count($rankToStr); $i++) {
+    $strToRank[$rankToStr[$i]] = $i;
+  }
+
+
+  foreach($subTechniques as $subTech) {
+    $techId = explode(".", $subTech->id)[0];
+
+    foreach($techniques as $tech) {
+      if ($techId != $tech->id) {
+        continue;
+      }
+      $subTechRank = $strToRank[$subTech->status];
+      $techRank = $strToRank[$tech->status];
+      if ($subTechRank < $techRank) {
+        $tech->status = $rankToStr[$subTechRank];
+      }
+    }
+  }
+  return json_encode($techniques);
+}
 
 ########################################################
 ###     Main loop
@@ -539,9 +485,9 @@ function deleteTest($tech, $test){
 if (isset($_GET['action'])) {
   switch ($_GET['action']) {
     case 'startpage':
-      $query = "SELECT id, name, tactics, status FROM mitre WHERE id NOT LIKE '%.%';";
-      $result = executeQuery($query);
-      echo $result;
+      // $query = "SELECT id, name, tactics, status FROM mitre WHERE id NOT LIKE '%.%';";
+      // $result = executeQuery($query);
+      echo getTechniques();
       break;
 
     case 'specific':
@@ -594,9 +540,14 @@ if (isset($_GET['action'])) {
       $id = $_GET['id'];
       if(isID($id)){
         $id = explode(".", $id)[0];
-        echo executeQuery("SELECT * FROM history WHERE test_id LIKE '$id%' ORDER BY test_id;");
-        
+        $didSucceed = false;
+        $result = executeQuery("SELECT * FROM history WHERE test_id LIKE '$id%' ORDER BY start_time DESC;", $didSucceed);
+        if (!$didSucceed) {
+          http_response_code(500);
+        }
+        echo $result;
       } else {
+        http_response_code(400);
         echo "ID: " . $id ." is not valid ID";
       }
       break;
@@ -630,40 +581,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   if (isset($json_data->action)) {
     switch($json_data->action){
       case 'history':
-        $processed = parseExecution($json_data->execution);
-        if ($processed !== null){
-          $id = saveHistory($processed, $json_data->detected);
-          # get top level id
-          $root_id = explode('.',$id)[0];
-          
-          # handle Coloring
-          if($json_data->detected){
-            # update status of particular technique to DETECTED            
-            $query="UPDATE mitre SET status = 'detected' WHERE id = '$id' ;";
-            executeQuery($query);          
-            
-            # check if any subtechiques have status EXECUTED
-            $query="SELECT status FROM mitre WHERE status = 'executed' AND id LIKE '$root_id';";
-            $result = executeQuery($query);
-            echo "result: " . $result;
-            if(strlen($result) == null){
-              echo "detected";
-              $query="UPDATE mitre SET startpage = 'detected' WHERE id = '$root_id' ;";
+        saveHistory($json_data);
 
-            }
-            
-          } else {
-            echo "executed";
-            # update status of particular technique to EXECUTED            
-            $query="UPDATE mitre SET status = 'executed' WHERE id = '$id' ;";
-            executeQuery($query);
-            # check get top level id 
-            $root_id = explode('.',$id)[0];
-            
-            $query="UPDATE mitre SET startpage = 'executed' WHERE id = '$root_id' ";            
-          }
-          executeQuery($query);
-        }
+        $status = ($json_data->detected) ? 'detected' : 'executed';
+        $techId = explode('-', $json_data->testId)[0];
+        // Do not overwrite detected status.
+        $query="UPDATE mitre SET status = '$status' WHERE id = '$techId' AND status != 'detected';";
+        $didSucceed = false;
+        executeQuery($query, $didSucceed);  
+        if (!$didSucceed) {
+          http_response_code(500);
+        }       
         break;
       case 'edit_target':
         $ip = $json_data->ip;
