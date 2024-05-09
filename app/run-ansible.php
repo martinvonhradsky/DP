@@ -107,7 +107,7 @@ function executeAnsibleTest($alias, $test, $args) {
       
     }else{
       // remote execution that means its executed from ansible server to remote machine
-      $command = "ansible-playbook -i " . ANSIBLE_HOSTS_DIR . " --limit=$alias " . ANSIBLE_PLAYBOOK_PATH . "execute_custom_test_remote.yaml --extra-vars '{\"executable\":\"{$result[0]['executable']}\", \"test_file\":\"{$result[0]['file_name']}\", \"test_number\":\"{$test_array[1]}\", \"args\":\"{$args}\", \"tech_id\":\"{$test_array[0]}\", \"local_execution\":false}'";
+      $command = "ansible-playbook " . ANSIBLE_HOSTS_DIR . " " . ANSIBLE_PLAYBOOK_PATH . "execute_custom_test_remote.yaml --extra-vars '{\"executable\":\"{$result[0]['executable']}\", \"test_file\":\"{$result[0]['file_name']}\", \"test_number\":\"{$test_array[1]}\", \"args\":\"{$args}\", \"tech_id\":\"{$test_array[0]}\"}'";
     }
     
     /*

@@ -4,7 +4,7 @@
       <div class="flex justify-start w-full">
         <div v-if="store.leftColumn" class="w-2/5">
           <EasyDataTable
-            v-if="!isShow"
+            v-if="!isShow && !isConfirmVisible"
             class="cursor-pointer"
             :headers="techHeaders"
             :items="store.leftColumn"
@@ -12,7 +12,7 @@
           />
         </div>
 
-        <div v-if="store.selectedTech">
+        <div v-if="store.selectedTech && !isConfirmVisible">
           <div v-if="!isShow" class="ps-2">
             <table class="border-collapse border min-h-max">
               <thead>
@@ -87,6 +87,17 @@
         </div>
       </div>
     </Modal>
+
+    <!-- Confirmation modal -->
+    <div v-if="isConfirmVisible" class="confirm-modal">
+      <div class="confirm-content">
+        <p>Are you sure to delete test: {{ testToDelete.name }}?</p>
+        <div class="confirm-buttons">
+          <button @click="confirmDelete" class="edit-button p-1 m-1 bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded focus:outline-none text-xs">Yes</button>
+          <button @click="cancelDelete" class="edit-button p-1 m-1 bg-red-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded focus:outline-none text-xs">No</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -98,11 +109,19 @@ import EasyDataTable from "vue3-easy-data-table";
 
 const store = useTestStore();
 const isShow = ref(false);
+const isConfirmVisible = ref(false);
+let testToDelete = null;
 
 const techHeaders = [
   { text: "TECH ID", value: "technique_id" },
   { text: "TECH NAME", value: "name" },
 ];
+
+
+onMounted(() => {
+  store.fetchIDs();
+  store.fetchTests();
+});
 
 function showModal() {
   isShow.value = true;
@@ -111,11 +130,6 @@ function showModal() {
 function closeModal() {
   isShow.value = false;
 }
-
-onMounted(() => {
-  store.fetchIDs();
-  store.fetchTests();
-});
 
 function handleTechSelect(tech) {
   store.handleTechSelect(tech);
@@ -126,16 +140,68 @@ function setSelectedTest(test) {
 }
 
 function deleteCustomTest(test) {
-  store.deleteCustomTest(test);
+  testToDelete = test;
+  isConfirmVisible.value = true;
+}
+
+function confirmDelete() {
+  store.deleteCustomTest(testToDelete);
+  testToDelete = null;
+  isConfirmVisible.value = false;
+}
+
+function cancelDelete() {
+  testToDelete = null;
+  isConfirmVisible.value = false;
 }
 
 function submitCustomTest() {
   store.submitCustomTest();
   closeModal();
 }
+
+onMounted(() => {
+  store.fetchIDs();
+  store.fetchTests();
+});
 </script>
 
 <style scoped>
+.confirm-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.confirm-content {
+  background-color: white;
+  padding: 20px;
+  border-radius: 5px;
+}
+
+.confirm-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
+.confirm-buttons button {
+  padding: 5px 10px;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.confirm-buttons button:hover {
+  background-color: #f0f0f0;
+}
+
+
 .modal {
   width: 500px;
   padding: 30px;

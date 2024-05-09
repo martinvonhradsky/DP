@@ -30,7 +30,7 @@
             v-model="selectedTarget"
             id="aliasSelect"
           >
-            <option value="" disabled selected>Select a target</option>
+            <option value="None">None</option>
             <option
               v-for="target in targets"
               :value="target"
@@ -101,8 +101,7 @@ export default {
 
       // Selections
       selectedTest: null,
-      selectedTarget: null,
-
+      selectedTarget: "None",
       isLoading: false,
       testExecuted: false,
       testDetected: false,
@@ -127,8 +126,13 @@ export default {
       this.isLoading = true;
       const testId = `${this.selectedTest.technique_id}-${this.selectedTest.test_number}`;
       const args = this.selectedTest.argumentsValue;
-      const targetAlias = this.selectedTarget.alias;
-
+      let alias = "";
+      if(this.selectedTarget === "None"){
+        alias = "null";
+      }else{
+        alias = this.selectedTarget.alias;
+      }
+      const targetAlias = alias;
       console.log(`Execute test: ${targetAlias} ${testId} ${args}`);      
       this.$axios
         .get(
@@ -200,9 +204,17 @@ export default {
         });
     },
     handleTargetSelect(selectedTarget) {
-      // Update the selectedTarget data property with the selected value
-      this.selectedTarget = selectedTarget;
-    },
+          console.log("Selected Target:", selectedTarget);
+          // If the alias of the selected target is the same as the currently selected one,
+          // unselect it by setting selectedTarget to null
+          if (selectedTarget && selectedTarget.alias === (this.selectedTarget ? this.selectedTarget.alias : null)) {
+            this.$set(this, 'selectedTarget', null); // Use Vue.set to update selectedTarget
+          } else {
+            // Update the selectedTarget data property with the selected value
+            this.selectedTarget = selectedTarget;
+          }
+        },
+
     handleTestSelect(test) {
       this.selectedTest = test;
     },

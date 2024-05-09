@@ -354,7 +354,7 @@ function saveTest($json_data){
   $url = filter_var($json_data->url, FILTER_SANITIZE_URL);
   $filename = filter_var($json_data->file_name, FILTER_SANITIZE_STRING);
   $executable = filter_var($json_data->executable, FILTER_SANITIZE_STRING);
-  $description = filter_var($json_data->desc, FILTER_SANITIZE_STRING);
+  $description = filter_var($json_data->description, FILTER_SANITIZE_STRING);
   $local = filter_var($json_data->local_execution, FILTER_VALIDATE_BOOLEAN);
   $name = filter_var($json_data->name, FILTER_SANITIZE_STRING);
   $id = $json_data->technique_id;
@@ -443,7 +443,7 @@ function editTest($json_data){
   $filename = filter_var($json_data->file_name, FILTER_SANITIZE_STRING);
   $executable = filter_var($json_data->executable, FILTER_SANITIZE_STRING);
   $test_number = filter_var($json_data->test_number, FILTER_SANITIZE_NUMBER_INT);
-  $description = filter_var($json_data->desc, FILTER_SANITIZE_STRING);
+  $description = filter_var($json_data->description, FILTER_SANITIZE_STRING);
   $local = filter_var($json_data->local_execution, FILTER_VALIDATE_BOOLEAN);
   $name = filter_var($json_data->name, FILTER_SANITIZE_STRING);
   $id = $json_data->technique_id;
@@ -621,7 +621,7 @@ if (isset($_GET['action'])) {
       echo executeQuery("SELECT * FROM tests;");
       break;
     case 'get_custom_ids':
-      echo executeQuery("SELECT DISTINCT ON (technique_id) * FROM tests;");
+      echo executeQuery("SELECT id AS technique_id, name FROM mitre WHERE id IN (SELECT technique_id FROM (SELECT DISTINCT ON (technique_id) technique_id FROM tests ORDER BY technique_id) AS distinct_tests) ORDER BY technique_id;");
       break;
 
   }

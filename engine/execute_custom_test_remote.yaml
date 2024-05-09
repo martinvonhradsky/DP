@@ -15,15 +15,15 @@
       fail:
         msg: "Single host check failed."
       when: "{{ play_hosts|length }} != 1"
-      
+        
     - name: Execute code on local machine to remote target
       ansible.builtin.command: "{{ executable }} /var/www/html/module/engine/customs/{{ tech_id }}/{{ test_number }}/{{ test_file }} {{ args }}"
       register: result      
-      when: local_execution == false
+      
 
     - name: Debug
       debug:
         var: result
-      when: local_execution == false
+      
 
 
