@@ -426,20 +426,13 @@ function deleteTest($tech, $test){
 
     // Check if any rows were affected
     if ($stmt->rowCount() > 0) {
-      // Deletion successful, now delete the corresponding folder
-      $folder_path = "../engine/customs/$tech/$test"; 
-      $delete_script_path = "../engine/delete_test.sh"; 
-      // Execute the delete_test.sh script
-      $output = shell_exec("$delete_script_path $folder_path");
-
-      // Check if deletion was successful
-      if (strpos($output, "Folder $folder_path and its contents deleted successfully") !== false) {
-        http_response_code(200); // Success
-        return true; // Deletion successful
-      } else {
-        http_response_code(500); // Server error
-        return false; // Deletion failed
-      }
+      // Deletion successful, now delete the corresponding folder.
+      // Very basic sanitization, see: https://stackoverflow.com/questions/1911382/sanitize-file-path-in-php
+      $techSafe = basename($tech);
+      $testSafe = basename($test);
+      $folder_path = "../engine/customs/$techSafe/$testSafe"; 
+      $output = shell_exec("rm -rf $folder_path");
+      return true;
     } else {
       http_response_code(404); // Not found
       return false; // No rows were affected, test not found
