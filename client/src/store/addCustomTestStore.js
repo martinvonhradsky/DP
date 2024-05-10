@@ -71,8 +71,12 @@ export const useAddCustomTestStore = defineStore("addCustomTestStore", {
           Object.entries(this.fields).map(([key, field]) => [key, field.value])
         ),
       };
-      const response = await axios.post("/api.php", requestData);
-      console.log(response.data);
+      try {
+        const response = await axios.post("/api.php", requestData);
+        console.log(response.data);
+      } catch (error) {
+        console.log(error);
+      }
     },
   },
 });

@@ -39,12 +39,6 @@ export default {
       store: useAddCustomTestStore(),
     };
   },
-  props: {
-    selectedTarget: {
-      type: String,
-      required: true,
-    },
-  },
   setup() {
     const addCustomTestStore = useAddCustomTestStore();
 
