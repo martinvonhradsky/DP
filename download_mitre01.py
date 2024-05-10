@@ -137,37 +137,9 @@ def createTableTests():
         print("Error: %s", e)
         return 0
 
-def makeColoring():
-    conn.autocommit = True
-    cur = conn.cursor()
-    try:
-        cur.execute("SELECT id FROM mitre WHERE id NOT LIKE '%.%';")
-        test_available = cur.fetchall()
-        for test in test_available:
-            test_id1 = f"{test[0]}"
-            test_id2 = f"{test[0]}.%"
-            cur.execute(query="SELECT status FROM mitre WHERE id LIKE %s OR id LIKE %s ;", vars=(test_id1,test_id2))
-            result = cur.fetchall()
-            status = "not available"
-            for row in result:
-                if "detected" in row: 
-                    status = "detected" 
-                    break
-                if "executed" in row and status != "detected":
-                    status = "executed"
-                else: 
-                    if "available" in row and status != "available":
-                        status = "available"
-            cur.execute("UPDATE mitre SET startpage = %s WHERE id = %s ", vars=(status, test[0]))
-            
-    except Exception as e:
-        print(f"Error in coloring stratpage MitreDB: {e}")
-    print("Flagging MitreDB finished")
-
 def flagMitreDB(df):
     print("Flagging MitreDB started")
     df['status'] = 'not available'
-    df['startpage'] = 'no action'
     conn.autocommit = True
     cur = conn.cursor()
     for index, row in df.iterrows():
@@ -285,9 +257,6 @@ if __name__ == '__main__':
         print('Downloading MITRE data.')
         print('Pushing to DB.')
         createDatabase()
-        print('Coloring')
-        makeColoring()
-        print('Done.')
         conn.close()
     except Exception as e:
         print(f"An error occurred: {e}")

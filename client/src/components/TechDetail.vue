@@ -58,7 +58,11 @@
                   v-bind="selectedTest"
                   @change="selectTest(test)"
               />
-              <label :for="'radio' + test.technique_id + test.test_number">{{ test.test_number }} - {{ test.name }}</label>
+              <label :for="'radio' + test.technique_id + test.test_number">{{ test.test_number }} - {{ test.name }}
+                <span v-if="Object.keys(test.executions).length > 0" class="font-bold">
+                  [Executed: {{ Object.keys(test.executions).join(', ') }}]
+                </span>
+              </label>
               <div class="space-x-1" v-if="selectedTest === test && test.arguments">
                   <label for="textInput">Arguments</label>
                   <input type="text" id="textInput" v-model="test.argumentsValue"/>

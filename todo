@@ -22,10 +22,13 @@ Spustenie testu s argumentami:
 
 TODO:
   - pridat paralelizmus na requesty
-  - fix history saving
+  - notifikacie pri ukladani historie
 
 Qs:
   - v run-ansible   if($alias !== "null"){?
+  - startpage and status in mitre
+  - fix history saving 
+
 
 Done:
   - fix: ansible/hosts sa vymaze po kazdom spusteni

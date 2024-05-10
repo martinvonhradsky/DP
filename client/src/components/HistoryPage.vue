@@ -10,7 +10,7 @@
         <tr class="text-left bg-gray-300">
           <th class="px-4 py-2">Alias</th>
           <th class="px-4 py-2">Tech ID</th>
-          <th class="px-4 py-2">Start of the Test</th>
+          <th class="px-4 py-2">Test time</th>
         </tr>
       </thead>
       <tbody>
@@ -33,7 +33,7 @@
         </tr>
       </tbody>
     </table>
-    <OutputModal v-if="selectedItem" :item="selectedItem" @close="closeModal" />
+    <OutputModal v-if="selectedItem" :outputFileId="selectedItem.output" @close="closeModal" />
   </div>
 </template>
 

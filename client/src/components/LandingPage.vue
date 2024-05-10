@@ -65,11 +65,15 @@ export default {
             id: item.id,
             name: item.name,
             tactics: item.tactics,
-            startpage: item.startpage, // Add the startpage property here
+            status: item.status,
           });
         });
       });
 
+      // Sort by Name inside columns
+      Object.keys(newData).forEach((tactic) => {
+          newData[tactic].items.sort((a, b) => a.name.localeCompare(b.name));
+      });
       return newData;
     },
   },
