@@ -80,6 +80,7 @@ export const useTestStore = defineStore("testStore", {
         const response = await axios.post("/api.php", requestData);
         console.log(response.data);
         this.resetFields();
+        this.fetchTests();
       } catch (error) {
         console.error("Failed to submit custom test:", error);
         alert("Error submitting test: " + error.message);
@@ -124,6 +125,7 @@ export const useTestStore = defineStore("testStore", {
           data: requestData,
         });
         console.log("Delete response:", response.data);
+        this.fetchTests();
       } catch (error) {
         console.error("Failed to delete custom test:", error);
         alert("Error deleting test: " + error.message);
