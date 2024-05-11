@@ -35,6 +35,7 @@
               v-for="target in targets"
               :value="target"
               :key="target.alias"
+              :disabled="target.alias == 'localhost' && isSelectedTestLocalExecution"
             >
               {{ target.alias }}
             </option>
@@ -49,7 +50,7 @@
               ? 'Select a target and a test first.'
               : ''
           "
-          :disabled="isExecutionStarting || didTestTargetPairExecute || (selectedTest ? (selectedTest.local_execution ? !selectedTarget : false) : true) "
+          :disabled="isExecutionStarting || didTestTargetPairExecute || (selectedTest ? isSelectedTestLocalExecution && selectedTarget.alias == 'localhost' : true) "
         >
           Execute Test
         </button>
@@ -116,6 +117,9 @@ export default {
       } else {
         return (this.selectedTest.executions[this.selectedTarget.alias] ? true : false);
       }
+    },
+    isSelectedTestLocalExecution() {
+      return (this.selectedTest ? this.selectedTest.local_execution : true);
     }
   },
   mounted() {

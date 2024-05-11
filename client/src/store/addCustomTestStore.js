@@ -44,11 +44,13 @@ export const useAddCustomTestStore = defineStore("addCustomTestStore", {
         placeholder: "Enter additional arguments",
       },
     },
-    customTests: null,
-    selectedTest: null,
-    selectedTech: null,
-    leftColumn: null,
-    isLoading: false,
+    isSaving: false,
+    // format:
+    // {
+    //   class: String,
+    //   message: String,
+    // },
+    savingNotification: null,
   }),
   getters: {
     isFormValid(state) {
@@ -72,10 +74,23 @@ export const useAddCustomTestStore = defineStore("addCustomTestStore", {
         ),
       };
       try {
-        const response = await axios.post("/api.php", requestData);
-        console.log(response.data);
+        this.savingNotification = {
+          class: 'bg-yellow-300',
+          message: 'Saving...'
+        }
+        this.isSaving = true;
+        await axios.post("/api.php", requestData);
+        this.savingNotification = {
+          class: 'bg-green-300',
+          message: 'Ok.'
+        }
       } catch (error) {
-        console.log(error);
+        this.savingNotification = {
+          class: 'bg-red-300',
+          message: String(error)
+        }
+      } finally {
+        this.isSaving = false;
       }
     },
   },

@@ -4,6 +4,7 @@ header("Access-Control-Allow-Origin: *");
 // Define constants for configuration parameters
 define('ANSIBLE_PLAYBOOK_PATH', '../engine/');
 define('ANSIBLE_HOSTS_DIR', '/etc/ansible/secmon_hosts');
+define('LOCALHOST_STR', 'localhost');
 
 require 'api.php';
 
@@ -69,7 +70,7 @@ function executeAnsibleTest($alias, $test, $args) {
   }
 
 
-  if($alias !== "null"){
+  if($alias !== LOCALHOST_STR){
     // get Target data
     $query = "SELECT ip, alias, sudo_user, password, platform FROM target WHERE alias='" . $alias . "' ;";
     $result=json_decode(executeQuery($query), true); 
@@ -93,7 +94,7 @@ function executeAnsibleTest($alias, $test, $args) {
     
     if($result[0]['local_execution']){
 
-      if($alias == "null") {
+      if($alias == LOCALHOST_STR) {
         // Set the HTTP response code to 400
         http_response_code(400);
         // Return the error message
@@ -107,7 +108,8 @@ function executeAnsibleTest($alias, $test, $args) {
       
     }else{
       // remote execution that means its executed from ansible server to remote machine
-      $command = "ansible-playbook " . ANSIBLE_HOSTS_DIR . " " . ANSIBLE_PLAYBOOK_PATH . "execute_custom_test_remote.yaml --extra-vars '{\"executable\":\"{$result[0]['executable']}\", \"test_file\":\"{$result[0]['file_name']}\", \"test_number\":\"{$test_array[1]}\", \"args\":\"{$args}\", \"tech_id\":\"{$test_array[0]}\"}'";
+      // For silencing the warning see: https://stackoverflow.com/questions/59938088/ansible-issuing-warning-about-localhost
+      $command = "ANSIBLE_LOCALHOST_WARNING=False ansible-playbook " . ANSIBLE_PLAYBOOK_PATH . "execute_custom_test_remote.yaml --extra-vars '{\"executable\":\"{$result[0]['executable']}\", \"test_file\":\"{$result[0]['file_name']}\", \"test_number\":\"{$test_array[1]}\", \"args\":\"{$args}\", \"tech_id\":\"{$test_array[0]}\"}'";
     }
     
     /*
@@ -117,8 +119,8 @@ function executeAnsibleTest($alias, $test, $args) {
     $command = "ansible-playbook --limit=$alias ".ANSIBLE_PLAYBOOK_PATH."execute_custom_test.yaml --extra-vars '{\"executable\":\"".$result[0]['executable']."\", \"test_file\":\"".$result[0]['file_name']."\",\"directory\":\"".$path."\",\"test_number\":\"".$test."\"}'";
     // new
     $command = "ansible-playbook --limit=$alias " . ANSIBLE_PLAYBOOK_PATH . "execute_custom_test.yaml --extra-vars '{\"executable\":\"{$result[0]['executable']}\", \"test_file\":\"{$result[0]['file_name']}\",\"directory\":\"./customs/{$test_array[0]}\", \"test_number\":\"{$test}\", \"args\":\"8.8.8.8\", \"tech_id\":\"{$test_array[0]}\", \"alias\":\"{$alias}\"}'";
-
-  */}else{
+    */
+  } else{
     // Run the Ansible playbook for InvokeAtomic for test execution with the specified test ID
     $command = "ansible-playbook -i " . ANSIBLE_HOSTS_DIR . " --limit=$alias ".ANSIBLE_PLAYBOOK_PATH."execute_test.yaml --extra-vars '{\"test\":\"".$test."\"}'";
   }

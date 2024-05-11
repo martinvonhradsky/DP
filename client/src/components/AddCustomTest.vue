@@ -8,12 +8,19 @@
           :labels="labels"
           @updateField="handleFieldUpdate"
         />
+        <div
+            v-if="store.savingNotification"
+            :class="store.savingNotification.class"
+            class="rounded-md p-2 mb-2 text-white"
+        >
+            {{ store.savingNotification.message }}
+        </div>
         <div class="flex justify-between">
           <button
             class="btn btn-blue bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none disabled:bg-gray-400 disabled:text-gray-700 disabled:cursor-not-allowed disabled:border-gray-700"
             type="submit"
             @click="submitCustomTest()"
-            :disabled="!store.isFormValid"
+            :disabled="!store.isFormValid || store.isSaving"
           >
             Add Custom Test
           </button>

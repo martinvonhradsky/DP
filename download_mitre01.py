@@ -48,13 +48,14 @@ def createTableTarget():
                 platform VARCHAR(20) NOT NULL
                 );
             """)
+            localhost_values = ('localhost', 'localhost', 'n/a', 'n/a', 'debian')
             debian_values = ('debian', 'test-target-debian', 'test', 'password', 'debian')
             centos_values = ('centos', 'test-target-centos', 'test', 'password', 'centos')
             insert_query = """
                 INSERT INTO target (alias, IP, sudo_user, password, platform)
                 VALUES (%s, %s, %s, %s, %s)
             """
-            for row in [debian_values, centos_values]:
+            for row in [localhost_values, debian_values, centos_values]:
                 cur.execute(insert_query, row)
             conn.commit()
         cur.close()
