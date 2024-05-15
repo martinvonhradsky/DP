@@ -1,0 +1,27 @@
+version: '3'
+
+services:
+  db:
+    image: postgres:15.2
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    ports:
+      - "5434:5432"
+
+  python:
+    image: python_prod
+    env_file:
+      - .env
+    volumes:
+      - data-volume:/data
+    depends_on:
+      - db
+
+volumes:
+  db-data:
+  data-volume:
+  data-known_hosts:
+  data-ansible_hosts:

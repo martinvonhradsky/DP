@@ -12,6 +12,9 @@ POSTGRES_USER = os.getenv('POSTGRES_USER')
 POSTGRES_PASSWORD = os.getenv('POSTGRES_PASSWORD')
 DB_HOST = os.getenv('DB_HOST')
 
+print('Sleep 10s to ensure database is already setup')
+time.sleep(10)
+
 try:
     conn = psycopg2.connect(
         dbname=POSTGRES_DB,
@@ -21,7 +24,6 @@ try:
     )
 except psycopg2.Error as e:
     raise Exception(f"Could not connect to database: {e}")
-
 
 #######################################################
 # Creating table for storing 
@@ -162,9 +164,15 @@ def parseDataToDB():
     dir_path = os.path.dirname(os.path.realpath(__file__))
 
     # read the data from the file
-    with open(os.path.join('/data', 'available_tests.txt'), 'r') as file:
-        data = file.read()
-        data = data[:len(data) - 4].split("\", \"")
+    try:
+        with open(os.path.join('/data', 'available_tests.txt'), 'r') as file:
+            data = file.read()
+            data = data[:len(data) - 4].split("\", \"")
+    except:
+        print('Installed available_tests.txt not present, using default.')
+        with open(os.path.join('/app', 'available_tests.txt'), 'r') as file:
+            data = file.read()
+            data = data[:len(data) - 4].split("\", \"")
 
     # create a new array to store Tests from InvokeAtomic
     techniques = []
@@ -213,9 +221,8 @@ def downloadMatrix():
     # Open the response into a new file
     open("matrix.xlsx", "wb").write(response.content)
 
-def createDatabase():
-    # Sleep to ensure databese is already setup    
-    time.sleep(10)
+def createTableMitre():
+
     # Create database connection
 
     conn.autocommit = True
@@ -233,9 +240,9 @@ def createDatabase():
 
     # Check if the file exists
     if os.path.exists('./matrix.xlsx'):
-        print("createDatabase(): using local file matrix.xlsx ")
+        print("Table mitre using local file matrix.xlsx ")
     else:
-        print("createDatabase(): no local file matrix.xlsx available. Downloading...")
+        print("Table mitre no local file matrix.xlsx available. Downloading...")
         downloadMatrix()
         
 
@@ -252,12 +259,12 @@ def createDatabase():
 
 if __name__ == '__main__':
     try:
+        print('Pushing to DB.')
+        createTableTests()
+        createTableMitre()
         createTableHistory()
         createTableTarget()
-        createTableTests()
-        print('Downloading MITRE data.')
-        print('Pushing to DB.')
-        createDatabase()
         conn.close()
+        print('Finished.')
     except Exception as e:
         print(f"An error occurred: {e}")

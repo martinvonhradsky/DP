@@ -42,12 +42,13 @@ services:
 
   python:
     build:
-      context: .
-      dockerfile: Dockerfile_python
+      context: populate-db
+      dockerfile: Dockerfile
+      target: dev
     env_file:
       - .env
     volumes:
-      - .:/app
+      - ./populate-db/:/app
       - data-volume:/data
     depends_on:
       - db

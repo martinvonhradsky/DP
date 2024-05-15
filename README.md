@@ -11,3 +11,8 @@ To rebuild and restart a single image, or example `frontend`:
 ```
 docker-compose up -d --build --no-deps frontend
 ```
+
+## Prod build
+```
+docker build -t python_prod --target prod populate-db
+```
