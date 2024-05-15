@@ -5,7 +5,6 @@
         href="#"
         class="tab__link p-4 block cursor-pointer bg-indigo-700 hover:bg-indigo-800 no-underline text-white border-b-2 border-indigo-500 flex justify-between transition-colors duration-200 ease-in-out"
         @click.prevent="active = !active"
-        @click="fetchTests(item.id)"
       >
         <div class="flex">
           <strong>{{ item.id }}&nbsp;</strong>
@@ -33,38 +32,46 @@
           </p>
           <br />
           <p>
-            <span class="font-bold">url -</span>&nbsp;<a :href="item.url">{{
+            <span class="font-bold">Url -</span>&nbsp;<a :href="item.url">{{
               item.url
             }}</a>
           </p>
           <br />
-          <p>
-            <span v-if="!noTests" class="font-bold">Available tests:</span>
-            <span v-if="noTests" class="font-bold border-b-2 border-black">
-              Tests are not available for this technique
-            </span>
-          </p>
 
-          <div v-for="test in tests" :key="test.id">
-            <input
-              type="radio"
-              :id="'radio' + test"
-              :name="'radio_group'"
-              :value="test"
-              v-model="selectedTest"
-              @change="selectTest(test)"
-            />
-            <label :for="'radio' + test">{{ test.id }} - {{ test.name }}</label
-            ><br />
+          <span class="font-bold">Available tests:</span>
+
+          <div v-if="!item.tests">
+            <p>Fetching...</p>
           </div>
-
-          <span v-if="executeOutput !== null" class="font-bold">Output:</span>
-          <p
-            v-if="executeOutput !== null"
-            class="bg-white text-gray-800 px-4 py-2 rounded-md shadow-md border-2 border-black my-4"
-          >
-            {{ executeOutput }}
-          </p>
+          <div v-else>
+            <p>
+              <span v-if="item.tests.length == 0">
+                (No tests available for this technique)<br>
+              </span>
+            </p>
+            <div v-for="test in item.tests" :key="test.test_number">
+              <input
+                  type="radio"
+                  :id="'radio' + test.technique_id + test.test_number"
+                  :name="'radio_group'"
+                  :value="test"
+                  v-bind="selectedTest"
+                  @change="selectTest(test)"
+              />
+              <label :for="'radio' + test.technique_id + test.test_number">{{ test.test_number }} - {{ test.name }}
+                <span v-if="Object.keys(test.executions).length > 0" class="font-bold">
+                  [Executed: {{ Object.keys(test.executions).join(', ') }}]
+                </span>
+              </label>
+              <div class="space-x-1" v-if="selectedTest === test && test.arguments">
+                  <label for="textInput">Arguments</label>
+                  <input type="text" id="textInput" v-model="test.argumentsValue"/>
+              </div>
+              <br />
+            </div>
+          </div>
+          
+          <output-box :outputFileId="outputFileId" />  
         </div>
       </div>
 
@@ -74,56 +81,39 @@
 </template>
 
 <script>
+import OutputBox from './OutputBox.vue';
+
 export default {
   name: "TechDetail",
+  components: {
+    OutputBox,
+  },
   props: {
     item: {
       type: Object,
       required: true,
     },
-    title: {
-      type: String,
-      default: "",
+    selectedTest: {
+      type: [Object, null],
+      required: true,
     },
-    executeOutput: {
-      type: String,
-      default: null,
-    },
+    outputFileId: {
+      type: [String, null],
+      required: true,
+    }
   },
   data() {
     return {
       active: false,
-      localExecuteOutput: this.executeOutput,
-      noTests: null,
-      tests: null,
     };
   },
+
   setup() {
     return {};
   },
   methods: {
-    fetchTests(techId) {
-      this.$axios
-        .get(`api.php?action=test_by_id&id=${techId}`)
-        .then((response) => {
-          if (response.data[0].Error) {
-            this.noTests = response.data[0].Error;
-          } else {
-            this.tests = response.data;
-          }
-        })
-        .catch((error) => {
-          console.log(error);
-        });
-    },
     selectTest(test) {
       this.$emit("test-selected", test);
-    },
-  },
-  watch: {
-    executeOutput(newValue) {
-      // Update localExecuteOutput when executeOutput prop changes
-      this.localExecuteOutput = newValue;
     },
   },
 };

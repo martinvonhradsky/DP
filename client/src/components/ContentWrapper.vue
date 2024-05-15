@@ -44,7 +44,6 @@ export default {
         "Exfiltration",
         "Impact",
       ];
-      // Filter out the categories in the data object based on the column order
       return columnOrder.filter(categoryName => Object.hasOwn(this.data, categoryName));
     },
   },

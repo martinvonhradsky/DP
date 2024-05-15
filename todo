@@ -1,4 +1,37 @@
-Vikend  session:
+ Vikend  session:
 
 - pustat SSH na inom porte ako 22
 - pridat moznost specifikovat port
+
+ansible-playbook "./execute_custom_test.yaml" --extra-vars {"executable":"/bin/bash", "test_file":"script.sh","directory":"./customs/T1548","test_number":"1", "args":"mooore"}
+
+
+SELECT ip, alias, sudo_user, password, platform FROM target WHERE alias='centos'
+
+TODO Martin:
+CustomTestForm:
+  upravit frontend nech z toho negrcame
+  naplnit inputy udajmi testu on select
+  - dorobit delete  JA
+  - dorobit edit    JA
+
+
+Spustenie testu s argumentami:
+  dostat hodnotu z inut textu TechDetail line 60 do executeTest line 158 v ItemDetail
+
+
+TODO:
+  - pridat paralelizmus na requesty
+  - notifikacie pri ukladani historie
+
+Qs:
+  - v run-ansible   if($alias !== "null"){?
+  - startpage and status in mitre
+  - fix history saving 
+
+
+Done:
+  - fix: ansible/hosts sa vymaze po kazdom spusteni
+  - docker test target setup for ansible
+  - podpora pre sudo aj cez ssh kluce
+  - output.txt pleasure

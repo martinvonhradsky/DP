@@ -3,7 +3,8 @@ header("Access-Control-Allow-Origin: *");
 
 // Define constants for configuration parameters
 define('ANSIBLE_PLAYBOOK_PATH', '../engine/');
-define('ANSIBLE_HOSTS_PATH', '/etc/ansible/hosts');
+define('ANSIBLE_HOSTS_DIR', '/etc/ansible/secmon_hosts');
+define('LOCALHOST_STR', 'localhost');
 
 require 'api.php';
 
@@ -34,11 +35,20 @@ function setAnsibleHosts($alias) {
   if ($pwd != "") {
     $hostsContent .= " ansible_ssh_pass=" . $pwd;
   }
+  $hostsContent .= " ansible_sudo_pass=" . $pwd;
+
   $hostsContent .= "\n";
   
+  if (!is_dir(ANSIBLE_HOSTS_DIR)) {
+    if (!mkdir(ANSIBLE_HOSTS_DIR, 0755)) {
+      http_response_code(500);
+      echo "Error creating directory " . ANSIBLE_HOSTS_DIR;
+      return 1;
+    }
+  }
+
   // Write the content to the hosts file
-  echo $hostsContent;
-  file_put_contents(ANSIBLE_HOSTS_PATH, $hostsContent, FILE_APPEND);
+  file_put_contents(ANSIBLE_HOSTS_DIR . '/' . $alias, $hostsContent);
   return 0;
 }
 
@@ -47,40 +57,76 @@ function setupTarget($alias) {
   if (setAnsibleHosts($alias) != 0) {
     return;
   }
-  // Concurrent requests will be handled by different PHP processes so the environment
-  // variables will not get overwritten.
-  exec('echo popici > output.txt');
 
   // Run the Ansible playbook for target setup. See: https://stackoverflow.com/a/29456196/4500196 
-  $command = "ansible-playbook --limit=$alias ".ANSIBLE_PLAYBOOK_PATH."target_setup.yaml";
-  executeAnsible($command, "");
+  $command = "ansible-playbook -i " . ANSIBLE_HOSTS_DIR . " --limit=$alias ".ANSIBLE_PLAYBOOK_PATH."target_setup.yaml";
+  $output_file_id = executeAnsible($command, "");
+  echo json_encode(['output_file_id' => $output_file_id]);;
 }
 
-function executeAnsibleTest($alias, $test) {
-  // get Target data
-  $query = "SELECT ip, alias, sudo_user, encode(password, 'escape')::text as password, platform FROM target WHERE alias='" . $alias . "' ;";
-  $result=json_decode(executeQuery($query), true);
-  if ($result == NULL){
-    echo "Error: No such host as: " . $alias;   
+function executeAnsibleTest($alias, $test, $args) {
+  if($args == "null"){
+    $args = "";
   }
-  // set Target to /etc/ansible/hosts
-  setTarget($result[0]['ip'], $result[0]['sudo_user'], $result[0]['password']);
-  
+
+
+  if($alias !== LOCALHOST_STR){
+    // get Target data
+    $query = "SELECT ip, alias, sudo_user, password, platform FROM target WHERE alias='" . $alias . "' ;";
+    $result=json_decode(executeQuery($query), true); 
+    
+    if ($result == NULL){
+      echo "Error: No such host as: " . $alias;   
+    }
+    // set Target to /etc/ansible/hosts
+    //setTarget($result[0]['ip'], $result[0]['sudo_user'], $result[0]['password']);
+    setAnsibleHosts($alias);  
+  }
+
   # create test metadata json
   $metadata = '{"test_id":"' . $test .'", "target":"'. $alias . '"}';
   $test_array = explode("-", $test);
-  $query = "SELECT executable, file_name  FROM tests WHERE technique_id='$test_array[0]' AND test_number='$test_array[1]';";
+  $query = "SELECT executable, file_name, arguments, local_execution FROM tests WHERE technique_id='$test_array[0]' AND test_number='$test_array[1]';";
   $result=json_decode(executeQuery($query), true);
-  
+
+
   if($result[0]['executable'] !== "Invoke atomic"){
+    
+    if($result[0]['local_execution']){
+
+      if($alias == LOCALHOST_STR) {
+        // Set the HTTP response code to 400
+        http_response_code(400);
+        // Return the error message
+        echo "Test execution failed. No target device specified for local execution.";
+        return;
+      }
+
+      // local execution that means its executed locally on remote machine
+      $command = "ansible-playbook -i " . ANSIBLE_HOSTS_DIR . " --limit=$alias " . ANSIBLE_PLAYBOOK_PATH . "execute_custom_test.yaml --extra-vars '{\"executable\":\"{$result[0]['executable']}\", \"test_file\":\"{$result[0]['file_name']}\",\"directory\":\"./customs/{$test_array[0]}\", \"test_number\":\"{$test_array[1]}\", \"args\":\"{$args}\", \"tech_id\":\"{$test_array[0]}\", \"alias\":\"{$alias}\"}'";
+        
+      
+    }else{
+      // remote execution that means its executed from ansible server to remote machine
+      // For silencing the warning see: https://stackoverflow.com/questions/59938088/ansible-issuing-warning-about-localhost
+      $command = "ANSIBLE_LOCALHOST_WARNING=False ansible-playbook " . ANSIBLE_PLAYBOOK_PATH . "execute_custom_test_remote.yaml --extra-vars '{\"executable\":\"{$result[0]['executable']}\", \"test_file\":\"{$result[0]['file_name']}\", \"test_number\":\"{$test_array[1]}\", \"args\":\"{$args}\", \"tech_id\":\"{$test_array[0]}\"}'";
+    }
+    
+    /*
     $path = "customs/".$test_array[0]."/".$test_array[1];
     // Run the Ansible playbook for custom test execution
-    $command = "ansible-playbook ".ANSIBLE_PLAYBOOK_PATH."execute_custom_test.yaml --extra-vars '{\"executable\":\"".$result[0]['executable']."\", \"test_file\":\"".$result[0]['file_name']."\",\"directory\":\"".$path."\",\"test_number\":\"".$test."\"}'";
-  }else{
+    //old
+    $command = "ansible-playbook --limit=$alias ".ANSIBLE_PLAYBOOK_PATH."execute_custom_test.yaml --extra-vars '{\"executable\":\"".$result[0]['executable']."\", \"test_file\":\"".$result[0]['file_name']."\",\"directory\":\"".$path."\",\"test_number\":\"".$test."\"}'";
+    // new
+    $command = "ansible-playbook --limit=$alias " . ANSIBLE_PLAYBOOK_PATH . "execute_custom_test.yaml --extra-vars '{\"executable\":\"{$result[0]['executable']}\", \"test_file\":\"{$result[0]['file_name']}\",\"directory\":\"./customs/{$test_array[0]}\", \"test_number\":\"{$test}\", \"args\":\"8.8.8.8\", \"tech_id\":\"{$test_array[0]}\", \"alias\":\"{$alias}\"}'";
+    */
+  } else{
     // Run the Ansible playbook for InvokeAtomic for test execution with the specified test ID
-    $command = "ansible-playbook ".ANSIBLE_PLAYBOOK_PATH."execute_test.yaml --extra-vars '{\"test\":\"".$test."\"}'";
+    $command = "ansible-playbook -i " . ANSIBLE_HOSTS_DIR . " --limit=$alias ".ANSIBLE_PLAYBOOK_PATH."execute_test.yaml --extra-vars '{\"test\":\"".$test."\"}'";
   }
-  executeAnsible($command, $metadata);
+
+  $output_file_id = executeAnsible($command, $metadata);
+  echo json_encode(['output_file_id' => $output_file_id]);;
 }
 
 /*
@@ -103,26 +149,30 @@ function executeAnsible($command){
 }
 */
 
+// Returns file_id of the output file.
 function executeAnsible($command, $metadata) {
-  // Check if the output.txt file exists, and delete it if it does
-  if (file_exists('output.txt')) {
-    unlink('output.txt');
+  $file_id = uniqid();
+  $file_path = ANSIBLE_OUTPUT_PATH . $file_id;
+
+  // Check if the path exists, and delete it if it does
+  if (file_exists($file_path)) {
+    unlink($file_path);
   }
   
-  // Create the output.txt file and write the $metadata variable to it
-  $file = fopen('output.txt', 'w');
+  // Create the output file and write the $metadata variable to it
+  $file = fopen($file_path, 'w');
   fwrite($file, json_encode($metadata));
   fclose($file);
   
-  // Append the [start] string to the output.txt file
-  $file = fopen('output.txt', 'a');
+  // Append the [start] string to the output file
+  $file = fopen($file_path, 'a');
   fwrite($file, "[start]\n");
   fclose($file);
   
   // Open a process to execute the command and append its output to the output.txt file
-  $command .= " >> output.txt 2>&1 &";
+  $command .= " >> " . $file_path . " 2>&1 &";
   exec($command);
-
+  return $file_id;
 }
 
 
@@ -143,10 +193,11 @@ if (isset($_GET["action"])) {
       }
       break;
     case "executeTest":
-      if(isset($_GET["alias"]) && isset($_GET['id']))
+      if(isset($_GET["alias"]) && isset($_GET['id']) && isset($_GET['args']))
       $alias = $_GET["alias"];
       $test_to_execute = $_GET['id'];
-      executeAnsibleTest($alias, $test_to_execute);      
+      $args = $_GET['args'];
+      executeAnsibleTest($alias, $test_to_execute, $args);      
       break;
     default:
       // Invalid action

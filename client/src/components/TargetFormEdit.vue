@@ -2,7 +2,7 @@
   <div @submit.prevent>
     <div class="mb-5">
       <label class="block text-gray-700 font-bold mb-2" for="target-ip">
-        Target IP
+        Target IP / Hostname
       </label>
       <input
         class="w-full h-fit border border-gray-300 rounded-md py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
@@ -51,21 +51,6 @@
       />
     </div>
     <div class="mb-5">
-      <label class="block text-gray-700 font-bold mb-2">Authentication Method</label>
-      <div>
-        <input type="radio" id="ssh-key" value="ssh-key" v-model="authMethod">
-        <label for="ssh-key">SSH Key</label>
-        <br />
-        <input type="radio" id="pwd-auth" value="pwd-auth" v-model="authMethod">
-        <label for="pwd-auth">Password</label>
-      </div>
-    </div>
-    <div v-if="authMethod == 'ssh-key'" class="mb-5">
-      <label class="block text-gray-700 font-bold mb-2">Public SSH Key</label>
-
-      <p style="word-break: break-all;">{{ sshKey }}</p>
-    </div>
-    <div v-if="authMethod == 'pwd-auth'" class="mb-5">
       <label class="block text-gray-700 font-bold mb-2" for="password">
         Password
       </label>
@@ -77,38 +62,17 @@
         required
       />
     </div>
-    <!--
+    <div class="mb-5">
+      <label class="block text-gray-700 font-bold mb-2" title="Place this in `/home/<user>/.ssh/authorized_keys` on the target server to support passwordless connection.">Public SSH Key &#128712;</label>
 
-    <div class="flex justify-between">
-      <button
-        class="w-48 h-12 border-solid border border-black bg-gray-400 px-4 py-2 rounded-md shadow-md focus:shadow-md mb-10"
-        @click="addTarget"
-      >
-        Add Target
-      </button>
-      <button
-        class="w-48 h-12 border-solid border border-black px-4 py-2 rounded-md shadow-md focus:shadow-md mb-10"
-        :class="{
-          'bg-gray-400': isFormValid,
-          'bg-gray-500': !isFormValid,
-          'cursor-not-allowed': !isFormValid,
-        }"
-        @click="runSetup(selectedTarget)"
-        :disabled="!isFormValid"
-      >
-        <span v-if="!isLoading">RUN SETUP</span>
-        <div v-else>
-          <div
-            class="flex w-full justify-center items-center spinner inline-block"
-          ></div>
-        </div>
-      </button>
+      <p style="word-break: break-all;">{{ sshKey }}</p>
     </div>
-    -->
+
     <div
       v-if="notificationMessage"
       :class="notificationClass"
       class="rounded-md p-4 mb-4 mt-4"
+      style="font-family: 'Courier New', Courier, monospace;"
     >
       {{ notificationMessage }}
     </div>
@@ -133,7 +97,6 @@ export default {
       formData: null,
       password: "",
       notificationMessage: null,
-      authMethod: "ssh-key",
       sshKey: null,
 
       // Constants
@@ -147,6 +110,7 @@ export default {
       immediate: true,
       handler(newValue) {
         this.formData = { ...newValue[0] };
+        this.password = "";
       },
     },
   },
@@ -158,7 +122,7 @@ export default {
       return (
         this.formData.ip &&
         this.formData.sudo_user &&
-        (this.authMethod == 'ssh-key' || this.password) &&
+        (!this.isNew || this.password) &&
         this.formData.platform &&
         this.formData.alias
       );

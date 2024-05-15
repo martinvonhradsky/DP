@@ -4,23 +4,19 @@
     <div class="w-full flex justify-center p-5"> 
     </div>
     <div class="container px-10 flex w-full mb-5">
-      <div v-if="items" class="flex flex-col mr-5">
+      <div v-if="techniques" class="flex flex-col mr-5">
         <TechDetail
-          v-for="item in items"
-          :key="item.id"
-          :item="item"
-          :execute-output="item.executeOutput"
-          @test-selected="handleTestSelect($event)"
+          v-for="tech in techniques"
+          :key="tech.id"
+          :item="tech"
+          :selectedTest="selectedTest"
+          :outputFileId="outputFileId(tech.id)"
+          @test-selected="handleTestSelect"
         />
       </div>
       <!-- Left -->
-      <div class="w-2/6 h-3/6 flex flex-col items-center justify-between">
-        <RouterLink
-          :to="{ name: 'Home' }"
-          class="flex items-center justify-center w-48 h-12 border-solid border border-black bg-gray-400 px-4 py-2 rounded-md shadow-md focus:shadow-md mb-10"
-        >
-          HOME
-        </RouterLink>
+      <div class="w-2/6 h-3/6 flex flex-col items-center justify-between" style="position: sticky; top: 15px;">
+        
         <RouterLink
           :to="{ name: 'HistoryPage', params: { id: $route.params.id } }"
           class="flex items-center justify-center w-48 h-12 border-solid border border-black bg-gray-400 px-4 py-2 rounded-md shadow-md focus:shadow-md mb-10"
@@ -33,81 +29,54 @@
             class="w-48 h-12 border-solid border border-black bg-gray-400 px-4 py-2 rounded-md shadow-md focus:shadow-md mb-10"
             v-model="selectedTarget"
             id="aliasSelect"
-            @click="fetchTargets"
-            @change="handleTargetSelect(selectedTarget)"
           >
             <option value="" disabled selected>Select a target</option>
             <option
               v-for="target in targets"
-              :value="target.alias"
-              :key="target.id"
+              :value="target"
+              :key="target.alias"
+              :disabled="target.alias == 'localhost' && isSelectedTestLocalExecution"
             >
               {{ target.alias }}
             </option>
           </select>
         </div>
+
         <button
-          class="w-48 h-12 border-solid border border-black px-4 py-2 rounded-md shadow-md focus:shadow-md mb-10"
-          @click="toggleCustomTestModal"
-        >
-          <span>Add Custom Test</span>
-        </button>
-        <TargetModal
-          :show="showCustomTestModal"
-          @toggleModal="toggleCustomTestModal"
-        >
-          <template #header>
-            <div>
-              <div class="flex flex-col">
-                <h2 class="font-bold">Add Custom Test</h2>
-              </div>
-            </div>
-          </template>
-          <template #body>
-            <CustomTestForm />
-          </template>
-        </TargetModal>
-        <button
-          class="w-48 h-12 border-solid border border-black px-4 py-2 rounded-md shadow-md focus:shadow-md mb-10"
-          @click="executeTest(testId, selectedTarget)"
+          class="w-48 h-12 border-solid border border-black px-4 py-2 rounded-md shadow-md focus:shadow-md mb-10 disabled:opacity-50 disabled:bg-gray-400"
+          @click="executeTest()"
           :title="
             !selectedTarget || !selectedTest
               ? 'Select a target and a test first.'
-              : missingTooltip
+              : ''
           "
-          :disabled="!selectedTarget || !selectedTest"
-          :class="{ 'cursor-not-allowed': !selectedTarget || !selectedTest }"
+          :disabled="isExecutionStarting || didTestTargetPairExecute || (selectedTest ? isSelectedTestLocalExecution && selectedTarget.alias == 'localhost' : true) "
         >
-          <span v-if="!isLoading">Execute Test</span>
-          <div v-else>
-            <div
-              class="flex w-full justify-center items-center spinner inline-block"
-            ></div>
-          </div>
+          Execute Test
         </button>
-        <button
-          v-if="testExecuted"
-          @click="saveTestResult"
-          class="w-48 h-12 border-solid border border-black bg-gray-400 px-4 py-2 rounded-md shadow-md focus:shadow-md mb-10"
-        >
-          Save test result
-        </button>
-        <div v-if="testExecuted" class="flex items-center mb-10">
+        <div v-if="didTestTargetPairExecute" class="flex items-center mb-10">
           <input
             type="checkbox"
             id="testDetected"
-            v-model="testDetected"
+            v-model="selectedTest.executions[selectedTarget.alias].detected"
             class="mr-5"
           />
           <label for="testDetected">Test Detected</label>
         </div>
+        <button
+          v-if="didTestTargetPairExecute"
+          :disabled="selectedTest.executions[selectedTarget.alias].isResultBeingSaved"
+          @click="saveTestResult"
+          class="w-48 h-12 border-solid border border-black bg-gray-400 px-4 py-2 rounded-md shadow-md focus:shadow-md mb-10 disabled:opacity-50 disabled:bg-gray-400"
+        >
+          Save test result
+        </button>
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import CustomTestForm from "./CustomTestForm.vue";
 import TechDetail from "./TechDetail.vue";
 import NavbarVue from './PageNavbar.vue';
 
@@ -116,102 +85,120 @@ import { RouterLink } from "vue-router";
 export default {
   name: "ItemDetail",
   components: {
-    CustomTestForm,
     RouterLink,
     TechDetail,
     NavbarVue
   },
   data() {
     return {
-      items: [],
-      isLoading: false,
-      executeOutput: null,
-      missingTooltip: "Default Tooltip",
-      selectedTab: 0, // Default to the first tab
-      selectedTarget: null,
-      selectedTest: null,
-      setupOutput: "",
-      showCustomTestModal: false,
-      tabs: ["Add", "Edit", "Delete"], // Add more tab titles as needed
+      // Fetched data
+      techniques: [],
       targets: [],
-      testExecuted: false,
-      testDetected: false,
-      testId: null,
+
+      // Selections
+      selectedTest: null,
+      selectedTarget: null,
+
+      isExecutionStarting: false,
     };
   },
   computed: {
-    filteredTabs() {
-      if (this.selectedTarget) {
-        return this.tabs;
-      } else {
-        return this.tabs.filter((tab) => tab !== "Edit" && tab !== "Delete");
+    outputFileId() {
+      return (techId) => {
+        if (!this.selectedTest || !this.selectedTarget || this.selectedTest.technique_id !== techId) {
+          return null;
+        }
+        return this.selectedTest.executions[this.selectedTarget.alias]?.outputFileId ?? null;
       }
     },
+    didTestTargetPairExecute() {
+      if (!this.selectedTest || !this.selectedTarget) {
+        return false;
+      } else {
+        return (this.selectedTest.executions[this.selectedTarget.alias] ? true : false);
+      }
+    },
+    isSelectedTestLocalExecution() {
+      return (this.selectedTest ? this.selectedTest.local_execution : true);
+    }
   },
   mounted() {
-    this.fetchData();
+    this.fetchTechniquesAndTests();
+    this.fetchTargets();
   },
   methods: {
-    createTestId(technique_id, test_number) {
-      this.testId = `${technique_id}-${test_number}`;
+    makeTestId(techId, testNumber) {
+      return`${techId}-${testNumber}`;
     },
-    executeTest(testId, alias) {
-      this.isLoading = true;
-      this.createTestId(
-        this.selectedTest.technique_id,
-        this.selectedTest.test_number
-      );
+    executeTest() {
+      this.isExecutionStarting = true;
+      const testId = this.makeTestId(this.selectedTest.technique_id, this.selectedTest.test_number);
+      const args = this.selectedTest.argumentsValue;
+      const targetAlias = this.selectedTarget.alias;
+
+      console.log(`Execute test: ${targetAlias} ${testId} ${args}`);      
       this.$axios
         .get(
-          `run-ansible.php?action=executeTest&id=${testId}&alias=${alias}`,
+          `run-ansible.php?action=executeTest&id=${testId}&alias=${targetAlias}&args=${args}`,
           true
         )
         .then((response) => {
-          const selectedItem = this.items.find(
-            (item) => item.id === this.selectedTest.technique_id
-          );
-          if (selectedItem) {
-            selectedItem.executeOutput = response.data; // Update executeOutput for the selected item
-            this.executeOutput = selectedItem.executeOutput;
-            this.testExecuted = true;
-            this.updateExecuteOutput();
+          this.selectedTest.executions[targetAlias] = {
+            outputFileId: response.data.output_file_id,
+            detected: false,
+            isResultBeingSaved: false,
           }
         })
         .catch((error) => {
           console.log(error);
         })
         .finally(() => {
-          this.isLoading = false;
-          this.selectedTarget = null;
+          this.isExecutionStarting = false;
         });
     },
-    fetchData() {
+    fetchTests(tech) {
+      this.$axios
+        .get(`api.php?action=test_by_id&id=${tech.id}`)
+        .then((response) => {
+          if (!response || !response.data || !(response.data instanceof Array) || response.data.length == 0 || response.data[0].Error) {
+            tech.tests = [];
+          } else {
+            tech.tests = response.data.map((t) => {
+              t.argumentsValue = "";
+              // Format:
+              // {
+              //   targetAlias: {
+              //     outputFileId: string,
+              //     detected: boolean,
+              //     isResultBeingSaved: boolean,
+              //   }
+              // }
+              // Note: Only one execution per target is stored.
+              t.executions = {};
+              return t;
+            })
+          }
+        })
+        .catch((error) => {
+          tech.tests = [];
+          console.log(error);
+        });
+    },
+    fetchTechniquesAndTests() {
       const id = this.$route.params.id;
       this.$axios
         .get(`api.php?action=specific&id=${id}`)
         .then((response) => {
-          this.item = response.data[0];
-          this.items = Array.from(
+          console.log(response.data);
+          this.techniques = Array.from(
             new Set(response.data.map((item) => item.id))
           ).map((id) => {
             const item = response.data.find((item) => item.id === id);
-            item.executeOutput = null; // Initialize executeOutput for each item
             return item;
           });
-        })
-        .catch((error) => {
-          console.log(error);
-        });
-    },
-    fetchTargetDetails(alias) {
-      if (!this.selectedTarget) {
-        return;
-      }
-      const apiUrl = `api.php?action=target_detail&alias=${alias}`;
-      this.$axios
-        .get(apiUrl)
-        .then((response) => {
-          this.targetDetails = response.data;
+          for (let tech of this.techniques) {
+            this.fetchTests(tech);
+          }
         })
         .catch((error) => {
           console.log(error);
@@ -222,6 +209,8 @@ export default {
         .get("api.php?action=targets")
         .then((response) => {
           this.targets = response.data;
+          // Make the first target the selected one.
+          this.selectedTarget = (this.targets.length > 0 ? this.targets[0] : null);
         })
         .catch((error) => {
           console.log(error);
@@ -230,26 +219,20 @@ export default {
     handleTargetSelect(selectedTarget) {
       // Update the selectedTarget data property with the selected value
       this.selectedTarget = selectedTarget;
-      if (this.selectedTest) {
-        this.testExecuted = false;
-        this.createTestId(
-          this.selectedTest.technique_id,
-          this.selectedTest.test_number
-        );
-      }
     },
-    handleTestSelect(selectedTest) {
-      this.selectedTest = selectedTest;
-      this.testExecuted = false;
+    handleTestSelect(test) {
+      this.selectedTest = test;
     },
     saveTestResult() {
-      const selectedItem = this.items.find(
-                (item) => item.id === this.selectedTest.technique_id
-              );
+      const execution = this.selectedTest.executions[this.selectedTarget.alias];
+      execution.isResultBeingSaved = true;
+
       const requestData = {
         action: "history",
-        execution: selectedItem.executeOutput,
-        detected: this.testDetected,
+        testId:  this.makeTestId(this.selectedTest.technique_id, this.selectedTest.test_number),
+        target: this.selectedTarget.alias,
+        outputFileId: execution.outputFileId,
+        detected: execution.detected,
       };
       this.$axios
         .post("api.php", JSON.stringify(requestData), {
@@ -257,48 +240,12 @@ export default {
             "Content-Type": "application/json",
           },
         })
-        .then(() => {
-          this.testExecuted = false;
-        })
         .catch((error) => {
           console.log(error);
-        });
-    },
-    toggleCustomTestModal() {
-      this.showCustomTestModal = !this.showCustomTestModal;
-    },
-    updateExecuteOutput() {
-      if (this.testExecuted) {
-        const intervalId = setInterval(() => {
-          this.$axios
-            .get("api.php?action=result")
-            .then((response) => {
-              console.log(this.selectedTest);
-              const selectedItem = this.items.find(
-                (item) => item.id === this.selectedTest.technique_id
-              );
-              if (selectedItem) {
-                selectedItem.executeOutput = response.data.output;
-              }
-              if (response.data.end) {
-                clearInterval(intervalId); // Stop the interval when response.data.end is true
-              }
-            })
-            .catch((error) => {
-              console.log(error);
-            });
-        }, 2000);
-      }
-    },
-  },
-  watch: {
-    selectedTest(newSelectedTest) {
-      if (newSelectedTest && this.selectedTarget) {
-        this.createTestId(
-          newSelectedTest.technique_id,
-          newSelectedTest.test_number
-        );
-      }
+        })
+        .finally(() => {
+          execution.isResultBeingSaved = false;
+        })
     },
   },
 };

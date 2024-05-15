@@ -2,13 +2,11 @@ version: '3'
 
 services:
   web:
-    build: 
-      context: .
-      dockerfile: Dockerfile
+    image: uglyz4rd/dp_backend:1.0.0
+    restart: always
     env_file:
       - .env
     volumes:
-      - .:/var/www/html/module/
       - web-ansible_hosts:/etc/ansible/secmon_hosts
       - data-volume:/data
       - web-known_hosts:/data-known_hosts
@@ -19,12 +17,8 @@ services:
       - db
 
   frontend:
-    build:
-      context: .
-      dockerfile: client/Dockerfile
-      target: dev
-    volumes: 
-      - ./client/src:/app/src
+    image: uglyz4rd/dp_frontend:1.0.0
+    restart: always
     ports:
       - "8085:8080"
     depends_on:
@@ -41,14 +35,10 @@ services:
       - "5434:5432"
 
   python:
-    build:
-      context: populate-db
-      dockerfile: Dockerfile
-      target: dev
+    image: uglyz4rd/dp_populate_db:1.0.0
     env_file:
       - .env
     volumes:
-      - ./populate-db/:/app
       - data-volume:/data
     depends_on:
       - db
@@ -56,16 +46,12 @@ services:
 
   # Exposes vulnerable Apache server on port 8080.
   test-target-debian:
-    build:
-      context: ./test-target
-      dockerfile: Dockerfile_debian
+    image: uglyz4rd/dp_debian_target:1.0.0
     ports:
-      - "8080:80"
+      - "8086:80"
 
   test-target-centos:
-    build:
-      context: ./test-target
-      dockerfile: Dockerfile_centos
+    image: uglyz4rd/dp_centos_target:1.0.0
 
 volumes:
   db-data:
