@@ -9,9 +9,10 @@ services:
       - .env
     volumes:
       - .:/var/www/html/module/
-      - data-ansible_hosts:/etc/ansible/secmon_hosts
+      - web-ansible_hosts:/etc/ansible/secmon_hosts
       - data-volume:/data
-      - data-known_hosts:/data-known_hosts
+      - web-known_hosts:/data-known_hosts
+      - web-execution-outputs:/data-execution-outputs
     ports:
       - "80:80"
     depends_on:
@@ -20,14 +21,14 @@ services:
   frontend:
     build:
       context: .
-      dockerfile: client/Dockerfile_vue
+      dockerfile: client/Dockerfile
+      target: dev
     volumes: 
       - ./client/src:/app/src
     ports:
       - "8085:8080"
     depends_on:
       - web
-      
 
   db:
     image: postgres:15.2
@@ -38,7 +39,6 @@ services:
       - db-data:/var/lib/postgresql/data
     ports:
       - "5434:5432"
-    
 
   python:
     build:
@@ -70,5 +70,6 @@ services:
 volumes:
   db-data:
   data-volume:
-  data-known_hosts:
-  data-ansible_hosts:
+  web-known_hosts:
+  web-ansible_hosts:
+  web-execution-outputs:

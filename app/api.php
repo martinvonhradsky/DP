@@ -5,7 +5,7 @@ header("Access-Control-Allow-Headers: Content-Type");
 
 require_once('database.php');
 
-define('ANSIBLE_OUTPUT_PATH', '/tmp/ansible_run');
+define('ANSIBLE_OUTPUT_PATH', '/data-execution-outputs');
 
 function isID($id) {
   // Check if the ID matches the regular expression /T[0-9]+\.[0-9]+/i
